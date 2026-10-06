@@ -31,7 +31,7 @@ We evaluate the engine against the complete German Kaikki/Wiktionary IPA dataset
 ## Features
 * **Rules-First Architecture:** Massive reduction in RAM/Flash footprint by relying on deterministic linguistic rules instead of hash-tables.
 * **Zero OS Dependencies:** Pure C/C++ implementation. No Linux/POSIX dependencies.
-* **Multi-Language Support:** Supports over 100 languages, fully conforming to strict BCP-47 naming conventions (e.g., de_DE_dict.c).
+* **Multi-Language Ready:** Currently ships with a scientifically validated, 100% perfect German (de_DE) model. The architecture is explicitly designed to easily generate and integrate any of the 100+ global languages via the automated pipeline.
 * **Extremely Fast:** Tokenization and rule-evaluation happens in fractions of a millisecond.
 * **Component Registry Ready:** Built natively as an ESP-IDF component.
 
@@ -44,6 +44,7 @@ dependencies:
   esp-idf-espure-g2p:
     git: https://github.com/Strg-Alt-Entf-0x00/esp-idf-espure-g2p.git
 `
+
 
 
 
