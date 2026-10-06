@@ -13,7 +13,7 @@ This engine is now scientifically capable of phonemizing the HUI dataset for TTS
 # esp-idf-espure-g2p (formerly esp-idf-espure)
 **A rules-first, scientifically precise Multi-Language Text-to-Phoneme (G2P) Engine for ESP32 and ESP-IDF.**
 
-esp-idf-espure-g2p is a pure C/C++ embedded phonemizer. It was originally born as a port of espeak-ng / espure, but has since evolved into an independent, architecturally superior engine. 
+esp-idf-espure-g2p is a pure C/C++ embedded phonemizer. It was originally born as a port of espeak-ng / espyak, but has since evolved into an independent, architecturally superior engine. 
 
 While legacy engines like espeak-ng rely on bloated exception dictionaries, esp-idf-espure-g2p enforces a **"Rules-First" philosophy**. We systematically eliminated structural rule bugs and expanded context-sensitive phoneme generation, allowing the engine to synthesize the logical core of complex languages (like German) using pure algorithmic logic. 
 
@@ -44,6 +44,7 @@ dependencies:
   esp-idf-espure-g2p:
     git: https://github.com/Strg-Alt-Entf-0x00/esp-idf-espure-g2p.git
 `
+
 
 
 
