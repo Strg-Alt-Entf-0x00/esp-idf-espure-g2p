@@ -1,5 +1,5 @@
 ﻿# espure G2P Engine
-**A state-of-the-art C-based G2P engine optimized for ESP32 and neutral VITS training datasets.**
+**A state-of-the-art C-based G2P engine optimized for ESP32 and TTS applications.**
 
 ## Latest Breakthrough (Phase 3 Completed)
 We have successfully mapped **80,625 Ground Truth words** from the Kaikki/Wiktionary German dataset to our C-engine!
@@ -41,6 +41,7 @@ dependencies:
   esp-idf-espure-g2p:
     git: https://github.com/Strg-Alt-Entf-0x00/esp-idf-espure-g2p.git
 `
+
 
 
 
