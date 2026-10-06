@@ -1,0 +1,34 @@
+﻿# ESP-IDF
+build/
+sdkconfig
+sdkconfig.old
+dependencies.lock
+managed_components/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+venv/
+env/
+ENV/
+.pytest_cache/
+
+# VS Code
+.vscode/c_cpp_properties.json
+.vscode/.browse.c_cpp.db*
+.vscode/compile_commands.json
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Private Docs
+.docs/
+

@@ -1,0 +1,12 @@
+﻿menu "espure Configuration"
+
+    menu "Language Selection"
+        comment "Select languages to include in build"
+        comment "Each language adds memory to the binary"
+
+        config ESPURE_LANG_DE_DE
+            bool "de_DE Dictionary (German)"
+            default y
+
+    endmenu
+endmenu

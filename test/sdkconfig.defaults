@@ -1,0 +1,38 @@
+# ============================================================================
+# ESP32-P4 Hardware Target Configuration
+# ============================================================================
+CONFIG_IDF_TARGET="esp32p4"
+CONFIG_ESP32P4_SELECTS_REV_LESS_V3=y
+
+# ============================================================================
+# Flash Configuration (32 MB QIO Mode)
+# ============================================================================
+CONFIG_ESPTOOLPY_FLASHMODE_QIO=y
+CONFIG_ESPTOOLPY_FLASHSIZE_32MB=y
+
+# ============================================================================
+# PSRAM Configuration (Required for ASR models)
+# ============================================================================
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_USE_MALLOC=y
+CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL=16384
+CONFIG_SPIRAM_MALLOC_RESERVE_INTERNAL=32768
+CONFIG_SPIRAM_SPEED_200M=y
+CONFIG_SPIRAM_MODE_OCT=y
+CONFIG_SPIRAM_ECC_ENABLE=n
+
+# ============================================================================
+# SPIFFS Configuration (16MB partition requires larger page size)
+# ============================================================================
+CONFIG_SPIFFS_MAX_PARTITIONS=3
+CONFIG_SPIFFS_PAGE_SIZE=512
+CONFIG_SPIFFS_OBJ_NAME_LEN=64
+CONFIG_SPIFFS_USE_MAGIC=y
+CONFIG_SPIFFS_USE_MAGIC_LENGTH=y
+
+
+# ============================================================================
+# espure Language Selection
+# ============================================================================
+CONFIG_ESPURE_LANG_EN=y
+CONFIG_ESPURE_LANG_DE=y
