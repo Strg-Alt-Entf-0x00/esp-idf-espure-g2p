@@ -2542,7 +2542,7 @@ static const espure_compiled_rule_t de_DE_g_default[] = {
     {de_DE_g_default_prog_22, 2, "_^_pl", "ź"},
 };
 
-const espure_rule_group_t DE_DE_GROUPS1[256] = {
+const espure_rule_group_t DE_GROUPS1[256] = {
     {NULL, 0},
     {NULL, 0},
     {NULL, 0},
@@ -2801,4 +2801,6 @@ const espure_rule_group_t DE_DE_GROUPS1[256] = {
     {NULL, 0},
 };
 
-const espure_rule_group_t DE_DE_DEFAULT_GROUP = {de_DE_g_default, 23};
+const espure_rule_group_t DE_DEFAULT_GROUP = {de_DE_g_default, 23};
+const espure_group2_t DE_GROUPS2[1] = {{0, {NULL, 0}}};
+const size_t DE_GROUPS2_COUNT = 0;

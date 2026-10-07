@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file espure_dictionary.c
  * @brief Dictionary lookup using binary search
  * 
@@ -13,6 +13,7 @@
 
 #include "espure_internal.h"
 #include "espure_phoneme_program.h"
+#include "espure_morph.h"
 #include <string.h>
 #include <esp_log.h>
 
@@ -200,13 +201,13 @@ espure_err_t espure_dictionary_load_embedded(espure_dictionary_t* dict,
         ESP_LOGE(TAG, "English dictionary not compiled (enable CONFIG_ESPURE_LANG_EN)");
         return ESPURE_ERR_NOT_FOUND;
 #endif
-    } else if (strcmp(lang, "de-DE-standard") == 0) {
+    } else if (strcmp(lang, "de-DE-standard") == 0 || strcmp(lang, "de") == 0) {
 #ifdef CONFIG_ESPURE_LANG_DE
-        extern const espure_dict_entry_t DICT_DE_DE[];
-        extern const size_t DICT_DE_DE_SIZE;
+        extern const espure_dict_entry_t espure_de_dict[];
+        extern const size_t espure_de_dict_size;
         
-        dict->entries = (espure_dict_entry_t*)DICT_DE;
-        dict->count = DICT_DE_SIZE;
+        dict->entries = (espure_dict_entry_t*)espure_de_dict;
+        dict->count = espure_de_dict_size;
         
         ESP_LOGI(TAG, "[OK] Loaded DE dictionary: %zu entries", dict->count);
 #else
@@ -450,11 +451,33 @@ espure_err_t espure_translator_phonemize(espure_translator_t* translator,
             // Found in dictionary
             ESPURE_DEBUG("Dictionary hit: %s -> %s", words[i], phonemes);
         } else {
-            // Not found - try rule matching
-            err = espure_text_to_phonemes(translator->lang, words[i], phonemes, sizeof(phonemes));
+            // Not found - try rule matching with morphological splitting
+            bool was_morphed = false;
+            char morphed_word[128];
+            if (espure_morph_split(words[i], morphed_word, sizeof(morphed_word))) {
+                ESPURE_DEBUG("Morphological split: %s -> %s", words[i], morphed_word);
+                err = espure_text_to_phonemes(translator->lang, morphed_word, phonemes, sizeof(phonemes));
+                was_morphed = true;
+            } else {
+                err = espure_text_to_phonemes(translator->lang, words[i], phonemes, sizeof(phonemes));
+            }
             
             if (err == ESPURE_OK && phonemes[0] != '$') {
                 ESPURE_DEBUG("Rule match: %s -> %s", words[i], phonemes);
+                
+                // Downgrade subsequent primary stresses for compound words
+                if (was_morphed) {
+                    bool first_stress_found = false;
+                    for (char* p = phonemes; *p; p++) {
+                        if (*p == '\'') {
+                            if (!first_stress_found) {
+                                first_stress_found = true;
+                            } else {
+                                *p = ','; // Downgrade to secondary stress
+                            }
+                        }
+                    }
+                }
             } else {
                 // Rule matching failed - fallback to copying input
                 strlcpy(phonemes, words[i], sizeof(phonemes));

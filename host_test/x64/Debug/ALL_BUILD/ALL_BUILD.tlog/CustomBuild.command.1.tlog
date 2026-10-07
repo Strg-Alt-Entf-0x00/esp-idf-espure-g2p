@@ -1,0 +1,10 @@
+^D:\GITHUB-REPOSITORYS\ESP-IDF-ESPURE-G2P\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/github-repositorys/esp-idf-espure-g2p -BD:/github-repositorys/esp-idf-espure-g2p/host_test --check-stamp-file D:/github-repositorys/esp-idf-espure-g2p/host_test/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

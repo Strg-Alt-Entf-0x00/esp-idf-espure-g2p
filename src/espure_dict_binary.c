@@ -9,8 +9,11 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <esp_err.h>
 #include <esp_log.h>
+
+#ifdef _MSC_VER
+#define __attribute__(x)
+#endif
 
 static const char *TAG = "espure_dictbin";
 
@@ -46,58 +49,65 @@ typedef struct __attribute__((packed)) {
  * @return ESP_OK on success
  */
 esp_err_t espure_dict_load_binary(const uint8_t *data, size_t size, espure_dictionary_t *out_dict) {
+    const espure_dict_header_t *header;
+    const espure_dict_entry_bin_t *entries;
+    const char *string_pool;
+    size_t expected_size;
+    espure_dict_entry_t *dict_entries;
+    uint32_t i;
+
     if (!data || !out_dict) {
-        return ESP_ERR_INVALID_ARG;
+        return ESPURE_ERR_INVALID_ARG;
     }
     
     if (size < sizeof(espure_dict_header_t)) {
         ESP_LOGE(TAG, "Dictionary too small: %zu bytes", size);
-        return ESP_ERR_INVALID_SIZE;
+        return ESPURE_ERR_INVALID_SIZE;
     }
     
     // Parse header
-    const espure_dict_header_t *header = (const espure_dict_header_t *)data;
+    header = (const espure_dict_header_t *)data;
     
     if (header->magic != DICT_MAGIC) {
         ESP_LOGE(TAG, "Invalid magic: 0x%08lx (expected 0x%08x)", header->magic, DICT_MAGIC);
-        return ESP_ERR_INVALID_ARG;
+        return ESPURE_ERR_INVALID_ARG;
     }
     
     if (header->version != DICT_VERSION) {
         ESP_LOGE(TAG, "Unsupported version: 0x%08lx", header->version);
-        return ESP_ERR_NOT_SUPPORTED;
+        return ESPURE_ERR_NOT_SUPPORTED;
     }
     
     // Calculate offsets
-    const espure_dict_entry_bin_t *entries = (const espure_dict_entry_bin_t *)(data + sizeof(espure_dict_header_t));
-    const char *string_pool = (const char *)(data + sizeof(espure_dict_header_t) + 
+    entries = (const espure_dict_entry_bin_t *)(data + sizeof(espure_dict_header_t));
+    string_pool = (const char *)(data + sizeof(espure_dict_header_t) + 
                                               (header->num_entries * sizeof(espure_dict_entry_bin_t)));
     
     // Validate size
-    size_t expected_size = sizeof(espure_dict_header_t) + 
+    expected_size = sizeof(espure_dict_header_t) + 
                            (header->num_entries * sizeof(espure_dict_entry_bin_t)) +
                            header->pool_size;
     
     if (size < expected_size) {
         ESP_LOGE(TAG, "Dictionary truncated: %zu < %zu bytes", size, expected_size);
-        return ESP_ERR_INVALID_SIZE;
+        return ESPURE_ERR_INVALID_SIZE;
     }
     
     // Compression not yet supported in this version
     if (header->flags & FLAG_COMPRESSED) {
         ESP_LOGE(TAG, "Compressed dictionaries not yet supported");
-        return ESP_ERR_NOT_SUPPORTED;
+        return ESPURE_ERR_NOT_SUPPORTED;
     }
     
     // Allocate dictionary entries (pointers to FLASH data)
-    espure_dict_entry_t *dict_entries = calloc(header->num_entries, sizeof(espure_dict_entry_t));
+    dict_entries = calloc(header->num_entries, sizeof(espure_dict_entry_t));
     if (!dict_entries) {
         ESP_LOGE(TAG, "Failed to allocate %lu entries", header->num_entries);
-        return ESP_ERR_NO_MEM;
+        return ESPURE_ERR_NO_MEM;
     }
     
     // Map binary entries to runtime entries
-    for (uint32_t i = 0; i < header->num_entries; i++) {
+    for (i = 0; i < header->num_entries; i++) {
         dict_entries[i].word = string_pool + entries[i].word_offset;
         dict_entries[i].phonemes = string_pool + entries[i].phoneme_offset;
         dict_entries[i].flags = entries[i].flags;
@@ -125,7 +135,7 @@ esp_err_t espure_dict_load_binary(const uint8_t *data, size_t size, espure_dicti
  */
 esp_err_t espure_dict_load_file(const char *path, espure_dictionary_t *out_dict) {
     if (!path || !out_dict) {
-        return ESP_ERR_INVALID_ARG;
+        return ESPURE_ERR_INVALID_ARG;
     }
     
     ESP_LOGI(TAG, "Loading dictionary from: %s", path);
@@ -134,7 +144,7 @@ esp_err_t espure_dict_load_file(const char *path, espure_dictionary_t *out_dict)
     FILE *f = fopen(path, "rb");
     if (!f) {
         ESP_LOGE(TAG, "Failed to open: %s", path);
-        return ESP_ERR_NOT_FOUND;
+        return ESPURE_ERR_NOT_FOUND;
     }
     
     // Get file size
@@ -145,7 +155,7 @@ esp_err_t espure_dict_load_file(const char *path, espure_dictionary_t *out_dict)
     if (size <= 0) {
         fclose(f);
         ESP_LOGE(TAG, "Invalid file size: %ld", size);
-        return ESP_ERR_INVALID_SIZE;
+        return ESPURE_ERR_INVALID_SIZE;
     }
     
     // Allocate buffer
@@ -153,7 +163,7 @@ esp_err_t espure_dict_load_file(const char *path, espure_dictionary_t *out_dict)
     if (!data) {
         fclose(f);
         ESP_LOGE(TAG, "Failed to allocate %ld bytes", size);
-        return ESP_ERR_NO_MEM;
+        return ESPURE_ERR_NO_MEM;
     }
     
     // Read file
@@ -163,7 +173,7 @@ esp_err_t espure_dict_load_file(const char *path, espure_dictionary_t *out_dict)
     if (read != size) {
         free(data);
         ESP_LOGE(TAG, "Read failed: %zu/%ld bytes", read, size);
-        return ESP_ERR_INVALID_SIZE;
+        return ESPURE_ERR_INVALID_SIZE;
     }
     
     // Load dictionary

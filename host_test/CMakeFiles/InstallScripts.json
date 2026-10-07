@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"D:/github-repositorys/esp-idf-espure-g2p/host_test/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

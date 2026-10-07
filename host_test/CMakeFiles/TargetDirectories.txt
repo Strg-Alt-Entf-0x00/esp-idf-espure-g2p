@@ -1,0 +1,2 @@
+D:/github-repositorys/esp-idf-espure-g2p/host_test/CMakeFiles/ALL_BUILD.dir
+D:/github-repositorys/esp-idf-espure-g2p/host_test/CMakeFiles/ZERO_CHECK.dir

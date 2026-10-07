@@ -21,7 +21,7 @@ espure_err_t espure_parse_phoneme_string(
     *out_count = 0;
     size_t pos = 0;
     size_t input_len = strlen(input);
-    const size_t MAX_PHONEME_LEN = 4;  // Max: "oU", "tS", "dZ", etc.
+    #define MAX_PHONEME_LEN 4  // Max: "oU", "tS", "dZ", etc.
     
     while (pos < input_len && *out_count < max_output) {
         // Skip spaces/barriers

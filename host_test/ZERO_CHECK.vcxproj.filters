@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="D:\github-repositorys\esp-idf-espure-g2p\host_test\CMakeFiles\02d77c2006103959bf62542e145a0236\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{C77681DB-8BC2-3E34-AEF6-0134A2377146}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

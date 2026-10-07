@@ -1,8 +1,9 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 import sys
 import os
 
 from espyak.rule_compiler import RuleSet
+import pathlib
 
 RULES_IN = str(pathlib.Path(__file__).parent.parent / 'data' / 'dictsource' / 'de_DE_rules')
 OUTPUT_C = str(pathlib.Path(__file__).parent.parent / 'src' / 'de_DE_rules_data.c')
@@ -42,7 +43,7 @@ def export_rules():
             
         def_name, def_count = write_rule_list("de_DE_g_default", rs.default)
 
-        f.write("const espure_rule_group_t DE_DE_GROUPS1[256] = {\n")
+        f.write("const espure_rule_group_t DE_GROUPS1[256] = {\n")
         for i in range(256):
             if i in g1_names:
                 f.write(f"    {{{g1_names[i][0]}, {g1_names[i][1]}}},\n")
@@ -50,7 +51,9 @@ def export_rules():
                 f.write("    {NULL, 0},\n")
         f.write("};\n\n")
         
-        f.write(f"const espure_rule_group_t DE_DE_DEFAULT_GROUP = {{{def_name}, {def_count}}};\n")
+        f.write(f"const espure_rule_group_t DE_DEFAULT_GROUP = {{{def_name}, {def_count}}};\n")
+        f.write("const espure_group2_t DE_GROUPS2[1] = {{0, {NULL, 0}}};\n")
+        f.write("const size_t DE_GROUPS2_COUNT = 0;\n")
 
     print("Done!")
 

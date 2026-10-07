@@ -155,8 +155,8 @@ static int match_rule(const unsigned char* word, size_t word_len, size_t pos, co
 }
 
 espure_err_t espure_text_to_phonemes(const char* lang, const char* text, char* phonemes_out, size_t out_size) {
-    if (!text || !phonemes_out || out_size == 0) return ESP_ERR_INVALID_ARG;
-    if (strcmp(lang, "de") != 0) return ESP_ERR_NOT_SUPPORTED;
+    if (!text || !phonemes_out || out_size == 0) return ESPURE_ERR_INVALID_ARG;
+    if (strcmp(lang, "de") != 0) return ESPURE_ERR_NOT_SUPPORTED;
     
     phonemes_out[0] = '\0';
     

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file espure_internal.h
  * @brief Internal types and function declarations
  * 
@@ -67,6 +67,8 @@ char* espure_strdup(const char* s, const espure_config_t* config);
 /**
  * Phoneme structure (internal representation)
  */
+#define PH_VOWEL 3
+
 typedef struct {
     char mnemonic[8];      // Phoneme mnemonic ("@", "h", "l", etc.)
     uint8_t code;          // Numeric code (1-255)
@@ -78,7 +80,7 @@ typedef struct {
 } espure_phoneme_t;
 
 typedef struct espure_phoneme_table_s espure_phoneme_table_t;
-
+typedef struct espure_translator_s espure_translator_t;
 espure_err_t espure_phoneme_table_init(const char* lang, 
                                        const espure_config_t* config,
                                        espure_phoneme_table_t** out);
@@ -277,7 +279,7 @@ void espure_dict_free_binary(espure_dictionary_t *dict);
  * Translator (espure_dictionary.c)
  * ======================================================================== */
 
-typedef struct espure_translator_s espure_translator_t;
+
 
 espure_err_t espure_translator_init(const char* lang,
                                     const espure_config_t* config,

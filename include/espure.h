@@ -36,6 +36,8 @@ typedef enum {
     ESPURE_ERR_INVALID_LANG,    /**< Invalid language code */
     ESPURE_ERR_INIT_FAILED,     /**< Initialization failed */
     ESPURE_ERR_NOT_INITIALIZED, /**< Handle not initialized */
+    ESPURE_ERR_INVALID_SIZE,    /**< Invalid size or length */
+    ESPURE_ERR_NOT_SUPPORTED,   /**< Operation not supported */
 } espure_err_t;
 
 /* Forward declarations */

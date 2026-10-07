@@ -1,0 +1,10 @@
+0,2-Liter-Flaschen	/nʊlkɔmat͡svaɪ̯ˈliːtɐˌflaʃn̩/, /nʊlkɔmat͡svaɪ̯ˈlɪtɐˌflaʃn̩/
+0,2-Liter-Flasche	/nʊlkɔmat͡svaɪ̯ˈliːtɐˌflaʃə/, /nʊlkɔmat͡svaɪ̯ˈlɪtɐˌflaʃə/
+0,33-Liter-Flaschen	/nʊlkɔmadʁaɪ̯dʁaɪ̯ˈliːtɐˌflaʃn̩/, /nʊlkɔmadʁaɪ̯dʁaɪ̯ˈlɪtɐˌflaʃn̩/
+0,33-Liter-Flasche	/nʊlkɔmadʁaɪ̯dʁaɪ̯ˈliːtɐˌflaʃə/, /nʊlkɔmadʁaɪ̯dʁaɪ̯ˈlɪtɐˌflaʃə/
+0,5-Liter-Flaschen	/nʊlkɔmafʏnfˈliːtɐˌflaʃn̩/, /nʊlkɔmafʏnfˈlɪtɐˌflaʃn̩/
+0,5-Liter-Flasche	/nʊlkɔmafʏnfˈliːtɐˌflaʃə/, /nʊlkɔmafʏnfˈlɪtɐˌflaʃə/
+0,75-Liter-Flaschen	/nʊlkɔmaziːbn̩fʏnfˈliːtɐˌflaʃn̩/, /nʊlkɔmaziːbn̩fʏnfˈlɪtɐˌflaʃn̩/
+0,75-Liter-Flasche	/nʊlkɔmaziːbn̩fʏnfˈliːtɐˌflaʃə/, /nʊlkɔmaziːbn̩fʏnfˈlɪtɐˌflaʃə/
+0,7-Liter-Flaschen	/nʊlkɔmaziːbn̩ˈliːtɐˌflaʃn̩/, /nʊlkɔmaziːbn̩ˈlɪtɐˌflaʃn̩/
+0,7-Liter-Flasche	/nʊlkɔmaziːbn̩ˈliːtɐˌflaʃə/, /nʊlkɔmaziːbn̩ˈlɪtɐˌflaʃə/
