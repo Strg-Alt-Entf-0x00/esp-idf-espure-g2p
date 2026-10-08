@@ -16,17 +16,6 @@
 static const char* TAG = "espure_phoneme";
 
 // Phoneme types (from phoneme.h)
-#define PH_INVALID    0
-#define PH_PAUSE      1
-#define PH_STRESS     2
-#define PH_VOWEL      3
-#define PH_LIQUID     4
-#define PH_STOP       5
-#define PH_VSTOP      6
-#define PH_FRICATIVE  7
-#define PH_VFRICATIVE 8
-#define PH_NASAL      9
-#define PH_VIRTUAL    10
 
 /**
  * Phoneme table structure
@@ -90,7 +79,7 @@ static espure_err_t init_reserved_phonemes(espure_phoneme_table_t* table) {
         ph->mnemonic[7] = '\0';
         
         ph->code = RESERVED_PHONEMES[i].code;
-        ph->type = PH_INVALID;  // Will be set when parsing phsource
+        ph->type = ESPURE_PHONEME_INVALID;  // Will be set when parsing phsource
         ph->ipa = NULL;
         ph->stress_type = 0;
         ph->flags = 0;

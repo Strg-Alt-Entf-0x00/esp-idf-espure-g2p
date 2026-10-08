@@ -9,4 +9,21 @@ menu "espure Configuration"
             default y
 
     endmenu
+
+    choice
+        prompt "Dictionary Storage Mode"
+        default ESPURE_DICT_BINARY_ARRAY
+        help
+            Select how the dictionary is stored in flash and memory.
+            
+            - Binary Array: Very fast binary search, but requires ~1.5MB for German. Best if PSRAM is available.
+            - Huffman Trie: Highly compressed, parses on-the-fly. Minimal RAM, saves Flash space. Best for ESP32 Classic.
+
+        config ESPURE_DICT_BINARY_ARRAY
+            bool "Flat Binary Array (Fastest)"
+
+        config ESPURE_DICT_HUFFMAN_TRIE
+            bool "Compressed Huffman Trie (Low Memory)"
+    endchoice
+
 endmenu

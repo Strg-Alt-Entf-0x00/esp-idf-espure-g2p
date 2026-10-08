@@ -1,2 +1,2 @@
 version: "1.0.0"
-description: "Espure G2P Engine for ESP32-P4"
+description: "A fast, accurate, and memory-efficient G2P Engine for ESP32 and Neural TTS applications"

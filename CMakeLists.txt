@@ -1,5 +1,4 @@
-﻿idf_component_register(
-    SRCS
+set(srcs
         "src/espure_api.c"
         "src/espure_dictionary.c"
         "src/espure_dict_binary.c"
@@ -14,14 +13,24 @@
         "src/espure_render.c"
         "src/espure_rules.c"
         "src/espure_stress.c"
-        "src/de_DE_rules_data.c"
-        "data/dict/de_DE_dict.c"
-        "data/dict/de_DE_morph_trie.c"
+        "lang/de_DE/de_DE_rules_data.c"
+        "lang/de_DE/de_DE_morph_trie.c"
+)
+
+if(CONFIG_ESPURE_DICT_HUFFMAN_TRIE)
+    list(APPEND srcs "lang/de_DE/de_DE_dict_compressed.c")
+else()
+    list(APPEND srcs "lang/de_DE/de_DE_dict.c")
+endif()
+
+idf_component_register(
+    SRCS
+        ${srcs}
     INCLUDE_DIRS 
         "include"
     PRIV_INCLUDE_DIRS
         "src"
-        "data/dict"
+        "lang/de_DE"
     REQUIRES
         esp_timer
 )

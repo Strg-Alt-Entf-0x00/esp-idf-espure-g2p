@@ -4,7 +4,7 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "../data/dict/de_DE_morph_trie.h"
+#include "../lang/de_DE/de_DE_morph_trie.h"
 
 static const char* const prefixes[] = {
     "ab", "an", "auf", "aus", "be", "bei", "da", "dar", "durch", "ein", "emp", 

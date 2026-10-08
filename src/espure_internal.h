@@ -73,7 +73,6 @@ char* espure_strdup(const char* s, const espure_config_t* config);
 /**
  * Phoneme structure (internal representation)
  */
-#define PH_VOWEL 3
 
 typedef struct {
     char mnemonic[8];      // Phoneme mnemonic ("@", "h", "l", etc.)
@@ -393,5 +392,6 @@ void espure_utf8_tolower(const char* input, char* output, size_t out_size);
 #define ESPURE_IRAM_ATTR
 #endif
 
-#endif /* ESPURE_INTERNAL_H */
+void espure_assign_word_stress(const espure_translator_t* tr, espure_phlist_entry_t* plist, size_t plist_len);
 
+#endif /* ESPURE_INTERNAL_H */

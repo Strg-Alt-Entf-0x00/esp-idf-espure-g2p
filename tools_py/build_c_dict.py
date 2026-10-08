@@ -1,10 +1,10 @@
-﻿import json
+import json
 import pathlib
 
 in_path = pathlib.Path(__file__).parent.parent / "data" / "dictsource" / "de_DE_espeak_exceptions.json"
 exceptions = json.loads(in_path.read_text('utf-8'))
 
-out_path = pathlib.Path(__file__).parent.parent / "data" / "dict" / "de_DE_dict.c"
+out_path = pathlib.Path(__file__).parent.parent / "lang" / "de_DE" / "de_DE_dict.c"
 
 c_code = """#include "espure_internal.h"
 

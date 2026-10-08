@@ -102,10 +102,6 @@ espure_err_t espure_dictionary_lookup(espure_dictionary_t* dict,
         return ESPURE_ERR_INVALID_ARG;
     }
     
-    if (!dict->entries || dict->count == 0) {
-        return ESPURE_ERR_NOT_FOUND;
-    }
-    
     // Lowercase the input word (including German UTF-8 umlauts) once before binary search
     char lower_word[128];
     size_t j = 0;
@@ -128,6 +124,15 @@ espure_err_t espure_dictionary_lookup(espure_dictionary_t* dict,
         }
     }
     lower_word[j] = '\0';
+    
+#ifdef CONFIG_ESPURE_DICT_HUFFMAN_TRIE
+    extern espure_err_t espure_dict_compressed_lookup(const char* word, char* out_phonemes, size_t out_size);
+    if (flags_out) *flags_out = 0; // Flags not supported in compressed mode yet
+    return espure_dict_compressed_lookup(lower_word, phonemes_out, out_size);
+#else
+    if (!dict->entries || dict->count == 0) {
+        return ESPURE_ERR_NOT_FOUND;
+    }
     
     // Binary search
     size_t left = 0;
@@ -158,6 +163,7 @@ espure_err_t espure_dictionary_lookup(espure_dictionary_t* dict,
     
     // Not found
     return ESPURE_ERR_NOT_FOUND;
+#endif
 }
 
 /* ========================================================================

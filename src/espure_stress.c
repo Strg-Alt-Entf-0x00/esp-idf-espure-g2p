@@ -22,7 +22,7 @@ void espure_assign_word_stress(const espure_translator_t* tr, espure_phlist_entr
     int max_stress = STRESS_IS_NOT_STRESSED;
     
     for (size_t i = 0; i < plist_len; i++) {
-        if (plist[i].ph->type == PH_VOWEL) {
+        if (plist[i].ph->type == ESPURE_PHONEME_VOWEL) {
             if (vowel_count < 32) {
                 vowel_indices[vowel_count] = i;
                 int current_stress = plist[i].stresslevel;

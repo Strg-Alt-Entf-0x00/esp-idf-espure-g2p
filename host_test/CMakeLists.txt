@@ -17,7 +17,7 @@ add_definitions(-DESPURE_HOST_TEST -DCONFIG_ESPURE_LANG_DE -DCONFIG_ESPURE_LANG_
 
 file(GLOB SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/../src/*.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../data/dict/*.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../lang/*/*.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/stubs/*.c"
 )
 
