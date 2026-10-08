@@ -1,18 +1,13 @@
-﻿import json
+import json
 import urllib.request
-import sys
 import pathlib
-import os
 
-KAIKKI_URL = "https://kaikki.org/dictionary/German/kaikki.org-dictionary-German.jsonl"
-OUT_FILE = pathlib.Path(__file__).parent.parent / "test" / "ground_truth" / "de_DE_ground_truth.json"
+URL = "https://github.com/open-dict-data/ipa-dict/raw/master/data/de.txt"
+OUT_FILE = pathlib.Path(__file__).parent.parent / "data" / "ground_truth" / "de_DE_ground_truth.json"
 
 def fetch_and_parse():
-    print(f"Downloading Kaikki.org German Dictionary...")
-    print(f"URL: {KAIKKI_URL}")
-    print("This file is large (~150MB). Please wait...")
-    
-    req = urllib.request.Request(KAIKKI_URL, headers={'User-Agent': 'Mozilla/5.0'})
+    print(f"Downloading German IPA Dict from {URL} ...")
+    req = urllib.request.Request(URL, headers={'User-Agent': 'Mozilla/5.0'})
     
     ipa_dict = {}
     word_count = 0
@@ -20,35 +15,31 @@ def fetch_and_parse():
     
     try:
         with urllib.request.urlopen(req) as response:
-            for line_bytes in response:
+            text = response.read().decode('utf-8')
+            lines = text.split('\n')
+            
+            for line in lines:
                 word_count += 1
                 if word_count % 100000 == 0:
-                    print(f"Processed {word_count} entries... found {ipa_count} words with IPA.")
+                    print(f"Processed {word_count} lines... found {ipa_count} valid words.")
                     
-                line = line_bytes.decode('utf-8').strip()
-                if not line:
+                line = line.strip()
+                if not line or '\t' not in line:
                     continue
                 
-                try:
-                    data = json.loads(line)
-                except json.JSONDecodeError:
-                    continue
+                parts = line.split('\t')
+                word = parts[0].strip()
+                ipas_raw = parts[1].split(', ')
                 
-                word = data.get("word")
-                if not word:
-                    continue
-                    
-                # We only want basic words, no multi-word phrases
+                # Filter out multi-word phrases and numbers
                 if " " in word or "-" in word:
                     continue
-                
-                sounds = data.get("sounds", [])
-                ipas = []
-                for sound in sounds:
-                    if "ipa" in sound:
-                        val = sound["ipa"]
-                        if val not in ipas:
-                            ipas.append(val)
+                    
+                # Ensure it is purely alphabetical
+                if not word.isalpha():
+                    continue
+                    
+                ipas = [ipa.strip('/').strip() for ipa in ipas_raw if ipa.strip()]
                 
                 if ipas:
                     ipa_dict[word] = ipas[0] if len(ipas) == 1 else ipas
@@ -58,8 +49,8 @@ def fetch_and_parse():
         print(f"Error fetching data: {e}")
         return
 
-    print(f"\nFinished parsing {word_count} total entries.")
-    print(f"Extracted {ipa_count} unique German words with IPA pronunciation!")
+    print(f"\nFinished parsing {word_count} total lines.")
+    print(f"Extracted {ipa_count} unique valid German words with IPA!")
     
     OUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(OUT_FILE, "w", encoding="utf-8") as f:
@@ -69,4 +60,3 @@ def fetch_and_parse():
 
 if __name__ == "__main__":
     fetch_and_parse()
-

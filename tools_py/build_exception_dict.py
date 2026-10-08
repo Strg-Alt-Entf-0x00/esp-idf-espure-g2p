@@ -5,7 +5,7 @@ from espyak.api import G2P
 from morph_analyzer import GermanMorphAnalyzer
 from final_benchmark import normalize_ipa
 
-GT_FILE = pathlib.Path(__file__).parent.parent / "test" / "ground_truth" / "de_DE_ground_truth_large.json"
+GT_FILE = pathlib.Path(__file__).parent.parent / "data" / "ground_truth" / "de_DE_ground_truth.json"
 OUT_FILE = pathlib.Path(__file__).parent.parent / "src" / "de_DE_dict_data.c"
 
 def build_exception_dict():

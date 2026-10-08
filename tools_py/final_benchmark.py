@@ -22,7 +22,7 @@ def normalize_ipa(ipa_str):
     return ipa.strip()
 
 print("Loading Ground Truth...")
-gt_path = pathlib.Path(__file__).parent.parent / 'test' / 'ground_truth' / 'de_DE_ground_truth.json'
+gt_path = pathlib.Path(__file__).parent.parent / 'data' / 'ground_truth' / 'de_DE_ground_truth.json'
 with open(gt_path, 'r', encoding='utf-8') as f:
     ground_truth = json.load(f)
 

@@ -2,7 +2,7 @@ import json
 import pathlib
 
 def build_root_dictionary():
-    gt_path = pathlib.Path(__file__).parent.parent / 'test' / 'ground_truth' / 'de_DE_ground_truth.json'
+    gt_path = pathlib.Path(__file__).parent.parent / 'data' / 'ground_truth' / 'de_DE_ground_truth.json'
     with open(gt_path, 'r', encoding='utf-8') as f:
         gt = json.load(f)
         

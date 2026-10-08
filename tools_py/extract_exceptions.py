@@ -1,4 +1,4 @@
-﻿import sys
+import sys
 import pathlib
 import io
 import json
@@ -15,32 +15,32 @@ def normalize_ipa(ipa_str):
     
     # Map narrow phonetic symbols to broad phonemes for fair comparison
     replacements = {
-        'ɡ': 'g',  # U+0261 -> U+0067
-        'ʁ': 'r',
-        'ʀ': 'r',
-        'ɐ': 'r',
-        'ɑ': 'a',
-        'ɛ': 'e',
-        'ɔ': 'o',
-        'ʏ': 'y',
-        'ʊ': 'u',
-        'ɪ': 'i',
-        'œ': 'ø',
-        'c': 'k',  # Sometimes 'ch' is c or ç, but let's stick to core matches
-        'ç': 'x',  # Ich-laut vs Ach-laut normalization
+        'g': 'g',  # U+0261 -> U+0067
+        '?': 'r',
+        '?': 'r',
+        '?': 'r',
+        '?': 'a',
+        '?': 'e',
+        '?': 'o',
+        '?': 'y',
+        '?': 'u',
+        '?': 'i',
+        '�': '�',
+        'c': 'k',  # Sometimes 'ch' is c or �, but let's stick to core matches
+        '�': 'x',  # Ich-laut vs Ach-laut normalization
     }
     for k, v in replacements.items():
         ipa = ipa.replace(k, v)
         
     # Remove prosody, stress, length, and tie markers
-    remove_chars = ['ˈ', 'ˌ', '.', 'ː', 'ˑ', '̯', '͡', '̥', 'ʰ', '(', ')', '‿', ' ']
+    remove_chars = [''', '?', '.', '?', '?', '?', '?', '?', '?', '(', ')', '?', ' ']
     for c in remove_chars:
         ipa = ipa.replace(c, '')
         
     return ipa.strip()
 
 print("Loading Ground Truth from Kaikki.org...")
-gt_path = pathlib.Path(__file__).parent.parent / 'test' / 'ground_truth' / 'de_DE_ground_truth.json'
+gt_path = pathlib.Path(__file__).parent.parent / 'data' / 'ground_truth' / 'de_DE_ground_truth.json'
 with open(gt_path, 'r', encoding='utf-8') as f:
     ground_truth = json.load(f)
 

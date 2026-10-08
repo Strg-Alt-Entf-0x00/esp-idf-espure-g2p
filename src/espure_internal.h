@@ -392,6 +392,4 @@ void espure_utf8_tolower(const char* input, char* output, size_t out_size);
 #define ESPURE_IRAM_ATTR
 #endif
 
-void espure_assign_word_stress(const espure_translator_t* tr, espure_phlist_entry_t* plist, size_t plist_len);
-
 #endif /* ESPURE_INTERNAL_H */

@@ -5,7 +5,7 @@ from espyak.api import G2P
 from morph_analyzer import GermanMorphAnalyzer
 from final_benchmark import normalize_ipa
 
-GT_FILE = pathlib.Path(__file__).parent.parent / "test" / "ground_truth" / "de_DE_ground_truth_large.json"
+GT_FILE = pathlib.Path(__file__).parent.parent / "data" / "ground_truth" / "de_DE_ground_truth.json"
 
 def analyze_patterns():
     print("Loading Massive Ground Truth (698k words)...")

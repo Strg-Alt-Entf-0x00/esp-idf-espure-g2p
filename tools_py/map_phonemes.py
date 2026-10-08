@@ -1,4 +1,4 @@
-﻿import json
+import json
 import pathlib
 
 # Load exceptions
@@ -8,36 +8,36 @@ exceptions = json.loads(exc_path.read_text('utf-8'))
 # IPA to Espeak mapping for German
 mapping = {
     # Consonants
-    'p': 'p', 'b': 'b', 't': 't', 'd': 'd', 'k': 'k', 'ɡ': 'g', 'g': 'g',
-    'f': 'f', 'v': 'v', 's': 's', 'z': 'z', 'ʃ': 'S', 'ʒ': 'Z',
-    'ç': 'C', 'x': 'x', 'χ': 'x', 'h': 'h',
-    'm': 'm', 'n': 'n', 'ŋ': 'N', 'l': 'l', 'j': 'j',
-    'ʁ': 'r', 'ʀ': 'r', 'r': 'r', 'ɐ': '6', # vocalized r is often '6' in espeak or 'r'
-    'ʔ': '_', # glottal stop
+    'p': 'p', 'b': 'b', 't': 't', 'd': 'd', 'k': 'k', 'g': 'g', 'g': 'g',
+    'f': 'f', 'v': 'v', 's': 's', 'z': 'z', '?': 'S', '?': 'Z',
+    '�': 'C', 'x': 'x', '?': 'x', 'h': 'h',
+    'm': 'm', 'n': 'n', '?': 'N', 'l': 'l', 'j': 'j',
+    '?': 'r', '?': 'r', 'r': 'r', '?': '6', # vocalized r is often '6' in espeak or 'r'
+    '?': '_', # glottal stop
 
     # Vowels (Short)
-    'a': 'a', 'ɛ': 'E', 'ɪ': 'I', 'ɔ': 'O', 'ʊ': 'U', 'ʏ': 'Y', 'œ': '9',
+    'a': 'a', '?': 'E', '?': 'I', '?': 'O', '?': 'U', '?': 'Y', '�': '9',
     
-    # Vowels (Long) - Wiktionary usually adds ː
-    'aː': 'a:', 'eː': 'e:', 'iː': 'i:', 'oː': 'o:', 'uː': 'u:', 'yː': 'y:', 'øː': '2:',
+    # Vowels (Long) - Wiktionary usually adds ?
+    'a?': 'a:', 'e?': 'e:', 'i?': 'i:', 'o?': 'o:', 'u?': 'u:', 'y?': 'y:', '�?': '2:',
     
     # Schwa
-    'ə': '@',
+    '?': '@',
     
     # Diphthongs
-    'aɪ̯': 'aI', 'aɪ': 'aI',
-    'aʊ̯': 'aU', 'aʊ': 'aU',
-    'ɔʏ̯': 'OY', 'ɔʏ': 'OY',
+    'a??': 'aI', 'a?': 'aI',
+    'a??': 'aU', 'a?': 'aU',
+    '???': 'OY', '??': 'OY',
     
     # Stress markers
-    'ˈ': "'",
-    'ˌ': ",",
+    ''': "'",
+    '?': ",",
     
-    # Affricates (ts, pf, tʃ, dʒ are usually just sequences in espeak)
-    't͡s': 'ts', 'p͡f': 'pf', 't͡ʃ': 'tS', 'd͡ʒ': 'dZ',
+    # Affricates (ts, pf, t?, d? are usually just sequences in espeak)
+    't?s': 'ts', 'p?f': 'pf', 't??': 'tS', 'd??': 'dZ',
     
     # Remove markers
-    '.': '', '̯': '', ' ': '_', 'ː': ':'
+    '.': '', '?': '', ' ': '_', '?': ':'
 }
 
 def translate_ipa_to_espeak(ipa):
@@ -46,8 +46,8 @@ def translate_ipa_to_espeak(ipa):
         if k in ipa:
             ipa = ipa.replace(k, mapping[k])
     
-    # Any remaining ː mapped to :
-    ipa = ipa.replace('ː', ':')
+    # Any remaining ? mapped to :
+    ipa = ipa.replace('?', ':')
     
     # Remove any unmapped unicode (clean up)
     allowed = set("pbtdkgfvszSZCxhmnNljr6_aEIOUY9e:i:o:u:y:2:@',:")

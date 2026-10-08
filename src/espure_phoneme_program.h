@@ -106,6 +106,8 @@ void espure_phoneme_program_compact(
  */
 void espure_phoneme_program_deinit(const espure_phoneme_table_t* phoneme_table);
 
+void espure_assign_word_stress(const espure_translator_t* tr, espure_phlist_entry_t* plist, size_t plist_len);
+
 #ifdef __cplusplus
 }
 #endif
