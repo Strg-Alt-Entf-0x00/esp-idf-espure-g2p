@@ -27,4 +27,6 @@ static inline void* heap_caps_realloc(void* ptr, size_t size, uint32_t caps) {
     return realloc(ptr, size);
 }
 
+void* heap_caps_aligned_alloc(size_t alignment, size_t size, uint32_t caps);
+
 #endif // ESP_HEAP_CAPS_H

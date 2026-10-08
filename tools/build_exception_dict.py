@@ -65,7 +65,7 @@ def build_exception_dict():
     print("Generating de_DE_dict_data.c ...")
     with open(OUT_FILE, 'w', encoding='utf-8') as f:
         f.write("#include <stddef.h>\n")
-        f.write('#include "espure_dictionary.h"\n\n')
+        f.write('#include "espure_internal.h"\n\n')
         f.write(f"// Auto-generated exception dictionary from {len(unique_exceptions)} words\n")
         f.write("const espure_dict_entry_t espure_de_dict[] = {\n")
         

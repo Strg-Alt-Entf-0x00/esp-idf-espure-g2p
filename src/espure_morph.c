@@ -1,4 +1,5 @@
 #include "espure_morph.h"
+#include "espure_internal.h"
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
@@ -147,10 +148,10 @@ bool espure_morph_split(const char* word, char* out_buffer, size_t max_len) {
                 } else {
                     for (size_t l = 0; l < num_links; l++) {
                         const char* link = linking_elements[l];
-                        int link_len = strlen(link);
+                        size_t link_len = strlen(link);
                         if (j + link_len <= n) {
                             bool link_match = true;
-                            for (int k = 0; k < link_len; k++) {
+                            for (size_t k = 0; k < link_len; k++) {
                                 if (byte_tolower((uint8_t)word[j + k]) != link[k]) {
                                     link_match = false;
                                     break;
@@ -186,7 +187,7 @@ bool espure_morph_split(const char* word, char* out_buffer, size_t max_len) {
         size_t res_len = 0;
         bool prev_was_end = false;
         
-        int curr = 0;
+        size_t curr = 0;
         while (curr < n) {
             int rend = dp[curr].root_end;
             int next_i = dp[curr].next_i;
@@ -204,7 +205,7 @@ bool espure_morph_split(const char* word, char* out_buffer, size_t max_len) {
                 }
             }
             
-            int part_len = next_i - curr;
+            size_t part_len = next_i - curr;
             if (res_len + part_len < sizeof(result)) {
                 memcpy(result + res_len, word + curr, part_len);
                 res_len += part_len;

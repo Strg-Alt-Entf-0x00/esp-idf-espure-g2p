@@ -1,5 +1,5 @@
 #include <stddef.h>
-#include "espure_dictionary.h"
+#include "espure_internal.h"
 
 // Auto-generated exception dictionary from 187644 words
 const espure_dict_entry_t espure_de_dict[] = {
