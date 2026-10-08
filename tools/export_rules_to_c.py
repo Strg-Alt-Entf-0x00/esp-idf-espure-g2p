@@ -52,8 +52,28 @@ def export_rules():
         f.write("};\n\n")
         
         f.write(f"const espure_rule_group_t DE_DEFAULT_GROUP = {{{def_name}, {def_count}}};\n")
-        f.write("const espure_group2_t DE_GROUPS2[1] = {{0, {NULL, 0}}};\n")
-        f.write("const size_t DE_GROUPS2_COUNT = 0;\n")
+        
+        # Export DE_GROUPS2
+        g2_names = []
+        for i, (k_bytes, rules) in enumerate(rs.groups2.items()):
+            name, count = write_rule_list(f"de_DE_g2_{i}", rules)
+            # k_bytes is 2 bytes (or padded to 2 bytes). E.g. b'ch' -> 0x63, 0x68
+            # The hkey in C is: ((uint16_t)lower[i] << 8) | lower[i+1]
+            if len(k_bytes) >= 2:
+                hkey = (k_bytes[0] << 8) | k_bytes[1]
+            else:
+                hkey = k_bytes[0] << 8
+            g2_names.append((hkey, name, count))
+            
+        if g2_names:
+            f.write(f"const espure_group2_t DE_GROUPS2[{len(g2_names)}] = {{\n")
+            for hkey, name, count in g2_names:
+                f.write(f"    {{0x{hkey:04X}, {{{name}, {count}}}}},\n")
+            f.write("};\n")
+            f.write(f"const size_t DE_GROUPS2_COUNT = {len(g2_names)};\n")
+        else:
+            f.write("const espure_group2_t DE_GROUPS2[1] = {{0, {NULL, 0}}};\n")
+            f.write("const size_t DE_GROUPS2_COUNT = 0;\n")
 
     print("Done!")
 

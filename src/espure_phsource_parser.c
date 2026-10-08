@@ -17,6 +17,7 @@
 #include "espure_internal.h"
 #include <string.h>
 #include <ctype.h>
+#include <stdlib.h>
 #include <esp_log.h>
 #include <esp_task_wdt.h>
 
@@ -42,7 +43,7 @@ static void skip_whitespace(parser_state_t* state) {
         char c = state->input[state->pos];
         
         // Skip whitespace
-        if (isspace(c)) {
+        if (isspace((unsigned char)c)) {
             if (c == '\n') state->line++;
             state->pos++;
             continue;
@@ -67,7 +68,7 @@ static bool read_token(parser_state_t* state, char* buffer, size_t buf_size) {
     skip_whitespace(state);
     
     size_t i = 0;
-    while (state->input[state->pos] && !isspace(state->input[state->pos]) && 
+    while (state->input[state->pos] && !isspace((unsigned char)state->input[state->pos]) && 
            state->input[state->pos] != '/' && i < buf_size - 1) {
         buffer[i++] = state->input[state->pos++];
     }
@@ -89,7 +90,7 @@ static void read_line(parser_state_t* state, char* buffer, size_t buf_size) {
     buffer[i] = '\0';
     
     // Trim trailing whitespace
-    while (i > 0 && isspace(buffer[i - 1])) {
+    while (i > 0 && isspace((unsigned char)buffer[i - 1])) {
         buffer[--i] = '\0';
     }
 }
@@ -148,9 +149,9 @@ static void parse_attribute(parser_state_t* state, espure_phoneme_t* phoneme) {
                     
                     // Remove leading/trailing whitespace
                     char* p = phoneme->program;
-                    while (*p && isspace(*p)) p++;
+                    while (*p && isspace((unsigned char)*p)) p++;
                     size_t len = strlen(p);
-                    while (len > 0 && isspace(p[len - 1])) len--;
+                    while (len > 0 && isspace((unsigned char)p[len - 1])) len--;
                     p[len] = '\0';
                     
                     if (p != phoneme->program) {
@@ -248,11 +249,17 @@ static bool parse_phoneme(parser_state_t* state, espure_phoneme_t* phoneme) {
         // Check for endphoneme
         size_t saved_pos = state->pos;
         if (read_token(state, g_keyword_buf, sizeof(g_keyword_buf))) {
+            // DEBUG
+            printf("DEBUG: Read token '%s'\n", g_keyword_buf);
             if (strcmp(g_keyword_buf, "endphoneme") == 0) {
                 break;
             }
             // Not endphoneme, restore position
             state->pos = saved_pos;
+        } else {
+            // DEBUG
+            printf("DEBUG: read_token returned false at pos %zu, char: %02x\n", state->pos, state->input[state->pos]);
+            if (!state->input[state->pos]) break; // EOF
         }
         
         parse_attribute(state, phoneme);

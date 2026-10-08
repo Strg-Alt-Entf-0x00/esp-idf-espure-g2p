@@ -12,6 +12,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <esp_err.h>
+#include <string.h>
+
+#ifdef _MSC_VER
+size_t strlcpy(char *dst, const char *src, size_t size);
+size_t strlcat(char *dst, const char *src, size_t size);
+#endif
 
 /* ========================================================================
  * Memory Management (espure_memory.c)

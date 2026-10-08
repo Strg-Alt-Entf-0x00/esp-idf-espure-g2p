@@ -1,4 +1,4 @@
-﻿menu "espure Configuration"
+menu "espure Configuration"
 
     menu "Language Selection"
         comment "Select languages to include in build"

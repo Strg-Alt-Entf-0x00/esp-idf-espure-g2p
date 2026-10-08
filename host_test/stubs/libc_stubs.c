@@ -13,10 +13,16 @@ size_t strlcpy(char *dst, const char *src, size_t size) {
     return ret;
 }
 
-// ESP-IDF memory allocation stubs not in header
-void* heap_caps_realloc(void* ptr, size_t size, uint32_t caps) {
-    return realloc(ptr, size);
+size_t strlcat(char *dst, const char *src, size_t size) {
+    size_t dlen = strlen(dst);
+    if (dlen >= size) return size + strlen(src);
+    size_t slen = strlen(src);
+    size_t copy_len = (dlen + slen >= size) ? (size - dlen - 1) : slen;
+    memcpy(dst + dlen, src, copy_len);
+    dst[dlen + copy_len] = '\0';
+    return dlen + slen;
 }
+
 
 void* heap_caps_aligned_alloc(size_t alignment, size_t size, uint32_t caps) {
 #ifdef _MSC_VER

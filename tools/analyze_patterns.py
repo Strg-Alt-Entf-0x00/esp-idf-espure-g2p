@@ -16,8 +16,8 @@ def analyze_patterns():
     g2p_rules._tr.dict.words = {} 
     analyzer = GermanMorphAnalyzer()
     
-    # We will just analyze the first 200,000 words to save time
-    limit = 200000
+    # We will just analyze the first 500,000 words to save time
+    limit = 500000
     count = 0
     
     endings_counter = Counter()

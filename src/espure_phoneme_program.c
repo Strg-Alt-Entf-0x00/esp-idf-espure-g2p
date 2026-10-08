@@ -498,7 +498,7 @@ static bool execute_instruction(
     const char* instruction
 ) {
     /* Skip empty lines and comments */
-    while (*instruction && isspace(*instruction)) instruction++;
+    while (*instruction && isspace((unsigned char)*instruction)) instruction++;
     if (!*instruction || *instruction == '#') {
         return false;
     }
@@ -541,7 +541,7 @@ static bool execute_instruction(
     if (strncmp(instruction, "ipa ", 4) == 0) {
         const char* ipa_str = instruction + 4;
         /* Skip leading whitespace */
-        while (*ipa_str && isspace(*ipa_str)) ipa_str++;
+        while (*ipa_str && isspace((unsigned char)*ipa_str)) ipa_str++;
         
         /* Handle "ipa NULL" (no IPA output) */
         if (strcmp(ipa_str, "NULL") == 0) {
@@ -601,10 +601,10 @@ static bool execute_program_for_phoneme(
         
         /* Trim leading/trailing whitespace */
         char* line = line_buf;
-        while (*line && isspace(*line)) line++;
+        while (*line && isspace((unsigned char)*line)) line++;
         
         char* end = line + strlen(line) - 1;
-        while (end > line && isspace(*end)) *end-- = '\0';
+        while (end > line && isspace((unsigned char)*end)) *end-- = '\0';
         
         /* Skip empty lines and comments */
         if (*line && *line != '#') {
@@ -626,7 +626,7 @@ static bool execute_program_for_phoneme(
                         
                         /* Trim condition */
                         char* p = condition + strlen(condition) - 1;
-                        while (p >= condition && isspace(*p)) *p-- = '\0';
+                        while (p >= condition && isspace((unsigned char)*p)) *p-- = '\0';
                         
                         /* Evaluate condition */
                         eval_context_t ectx;
@@ -652,7 +652,7 @@ static bool execute_program_for_phoneme(
                                     line_buf[line_len] = '\0';
                                     
                                     line = line_buf;
-                                    while (*line && isspace(*line)) line++;
+                                    while (*line && isspace((unsigned char)*line)) line++;
                                     
                                     if (strncmp(line, "ENDIF", 5) == 0) {
                                         break;
@@ -679,7 +679,7 @@ static bool execute_program_for_phoneme(
                                     line_buf[line_len] = '\0';
                                     
                                     line = line_buf;
-                                    while (*line && isspace(*line)) line++;
+                                    while (*line && isspace((unsigned char)*line)) line++;
                                     
                                     if (strncmp(line, "ENDIF", 5) == 0) {
                                         break;

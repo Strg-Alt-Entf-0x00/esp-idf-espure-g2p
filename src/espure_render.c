@@ -107,6 +107,8 @@ static const phoneme_ipa_t PHONEME_IPA_MAP[] = {
     // Special
     {"kw", "kw"},      // qu (queen)
     {"ks", "ks"},      // x (box)
+    {"A", "a"},        // short a (German)
+    {"_!", "ʔ"},       // glottal stop
 };
 
 #define NUM_IPA_MAPPINGS (sizeof(PHONEME_IPA_MAP) / sizeof(PHONEME_IPA_MAP[0]))
@@ -179,7 +181,7 @@ espure_err_t espure_render_phoneme_string(const espure_phoneme_table_t* table,
         if (!first && separator[0]) {
             size_t sep_len = strlen(separator);
             if (sep_len < out_remaining) {
-                strcpy(out_ptr, separator);
+                memcpy(out_ptr, separator, sep_len + 1);
                 out_ptr += sep_len;
                 out_remaining -= sep_len;
             }
@@ -189,7 +191,28 @@ espure_err_t espure_render_phoneme_string(const espure_phoneme_table_t* table,
         // Convert to IPA or keep as Kirshenbaum
         const char* rendered;
         if (format == ESPURE_FORMAT_IPA) {
-            rendered = find_ipa(ph_buffer);
+            // Check for leading stress markers
+            if (ph_buffer[0] == '\'') {
+                if (ph_buffer[1] == '\'') {
+                    // Secondary stress
+                    if (out_remaining > 2) {
+                        memcpy(out_ptr, "ˌ", 2); // U+02CC
+                        out_ptr += 2;
+                        out_remaining -= 2;
+                    }
+                    rendered = find_ipa(ph_buffer + 2);
+                } else {
+                    // Primary stress
+                    if (out_remaining > 2) {
+                        memcpy(out_ptr, "ˈ", 2); // U+02C8
+                        out_ptr += 2;
+                        out_remaining -= 2;
+                    }
+                    rendered = find_ipa(ph_buffer + 1);
+                }
+            } else {
+                rendered = find_ipa(ph_buffer);
+            }
         } else {
             rendered = ph_buffer;  // Kirshenbaum = mnemonic
         }
@@ -197,7 +220,7 @@ espure_err_t espure_render_phoneme_string(const espure_phoneme_table_t* table,
         // Append to output
         size_t len = strlen(rendered);
         if (len < out_remaining) {
-            strcpy(out_ptr, rendered);
+            memcpy(out_ptr, rendered, len + 1);
             out_ptr += len;
             out_remaining -= len;
         } else {

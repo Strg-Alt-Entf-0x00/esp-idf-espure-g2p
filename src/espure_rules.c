@@ -3,6 +3,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <esp_log.h>
 
 // VM Opcodes
 #define RULE_PRE 1
@@ -156,7 +158,7 @@ static int match_rule(const unsigned char* word, size_t word_len, size_t pos, co
 
 espure_err_t espure_text_to_phonemes(const char* lang, const char* text, char* phonemes_out, size_t out_size) {
     if (!text || !phonemes_out || out_size == 0) return ESPURE_ERR_INVALID_ARG;
-    if (strcmp(lang, "de") != 0) return ESPURE_ERR_NOT_SUPPORTED;
+    if (strncmp(lang, "de", 2) != 0) return ESPURE_ERR_NOT_SUPPORTED;
     
     phonemes_out[0] = '\0';
     
@@ -191,6 +193,21 @@ espure_err_t espure_text_to_phonemes(const char* lang, const char* text, char* p
     
     while (i < text_len && out_idx < out_size - 1) {
         unsigned char c = lower[i];
+        
+        // Native Glottal Stop Injection at Morpheme Boundaries
+        if (c == '-') {
+            if (i + 1 < text_len && is_vowel(lower[i+1])) {
+                const char* glottal = "_!'";
+                size_t gl_len = 3;
+                if (out_idx + gl_len < out_size) {
+                    memcpy(phonemes_out + out_idx, glottal, gl_len);
+                    out_idx += gl_len;
+                }
+            }
+            i++;
+            continue;
+        }
+
         int best_points = -1;
         const espure_compiled_rule_t* best_rule = NULL;
         
@@ -223,6 +240,8 @@ espure_err_t espure_text_to_phonemes(const char* lang, const char* text, char* p
             group = &DE_DEFAULT_GROUP;
         }
         
+        ESP_LOGI("RULES", "Char '%c' (0x%02X) -> Group has %zu rules", c, c, group->count);
+        
         for (size_t r = 0; r < group->count; r++) {
             const espure_compiled_rule_t* rule = &group->rules[r];
             size_t mlen = strlen(rule->match_str);
@@ -239,7 +258,7 @@ espure_err_t espure_text_to_phonemes(const char* lang, const char* text, char* p
             printf("MATCH: '%s' -> '%s' (pts: %d)\n", best_rule->match_str, best_rule->phonemes, best_points);
             size_t ph_len = strlen(best_rule->phonemes);
             if (out_idx + ph_len < out_size) {
-                strcpy(phonemes_out + out_idx, best_rule->phonemes);
+                memcpy(phonemes_out + out_idx, best_rule->phonemes, ph_len + 1);
                 out_idx += ph_len;
             }
             i += strlen(best_rule->match_str);

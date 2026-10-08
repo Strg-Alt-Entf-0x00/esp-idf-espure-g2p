@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file espure_phoneme_program_integration.c
  * @brief Integration layer: Phoneme string â†’ list conversion
  * 
@@ -54,10 +54,12 @@ espure_err_t espure_phoneme_string_to_list(
     
     ESP_LOGD(TAG, "Converting phoneme string: '%s'", phoneme_str);
     
+    uint8_t pending_stress = STRESS_UNSTRESSED;
+    
     while (pos < str_len && *out_len < max_len) {
         char mnemonic[8] = {0};
         size_t mnem_len = 0;
-        uint8_t stress_level = STRESS_UNSTRESSED;
+        uint8_t stress_level = pending_stress;
         
         // Skip leading spaces
         while (pos < str_len && phoneme_str[pos] == ' ') {
@@ -79,6 +81,8 @@ espure_err_t espure_phoneme_string_to_list(
             }
         }
         
+        pending_stress = stress_level;
+        
         // Parse phoneme mnemonic - read until space or end
         // Phonemes can be:
         // - Single char: @, h, l, k, r
@@ -88,10 +92,12 @@ espure_err_t espure_phoneme_string_to_list(
             mnemonic[mnem_len++] = phoneme_str[pos++];
         }
         
-        // Skip if empty
+        // Skip if empty (e.g. standalone stress marker)
         if (mnem_len == 0) {
-            break;
+            continue;
         }
+        
+        pending_stress = STRESS_UNSTRESSED;
         
         mnemonic[mnem_len] = '\0';
         

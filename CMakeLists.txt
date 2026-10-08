@@ -1,5 +1,27 @@
-﻿# TODO Phase 8: Embed language data
-# target_add_binary_data(${COMPONENT_LIB} 
-#     "data/phsource/phonemes" TEXT
-# )
-
+﻿idf_component_register(
+    SRCS
+        "src/espure_api.c"
+        "src/espure_dictionary.c"
+        "src/espure_dict_binary.c"
+        "src/espure_memory.c"
+        "src/espure_morph.c"
+        "src/espure_phoneme.c"
+        "src/espure_phoneme_parser.c"
+        "src/espure_phoneme_program.c"
+        "src/espure_phoneme_program_integration.c"
+        "src/espure_phsource_data.c"
+        "src/espure_phsource_parser.c"
+        "src/espure_render.c"
+        "src/espure_rules.c"
+        "src/espure_stress.c"
+        "src/de_DE_rules_data.c"
+        "data/dict/de_DE_dict.c"
+        "data/dict/de_DE_morph_trie.c"
+    INCLUDE_DIRS 
+        "include"
+    PRIV_INCLUDE_DIRS
+        "src"
+        "data/dict"
+    REQUIRES
+        esp_timer
+)

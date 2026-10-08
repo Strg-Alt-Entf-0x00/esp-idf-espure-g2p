@@ -432,6 +432,14 @@ const char espure_phsource_phonemes_test[] =
   "  vowel\n"
   "  ipa ʌ\n"
   "endphoneme\n"
+  "phoneme A\n"
+  "  vowel\n"
+  "  ipa a\n"
+  "endphoneme\n"
+  "phoneme !\n"
+  "  vowel\n"
+  "  ipa ʔ\n"
+  "endphoneme\n"
 ;
 
 const size_t espure_phsource_phonemes_test_size = sizeof(espure_phsource_phonemes_test);

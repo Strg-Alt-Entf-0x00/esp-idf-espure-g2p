@@ -3,6 +3,7 @@
 #include <string.h>
 
 int main(void) {
+    setvbuf(stdout, NULL, _IONBF, 0);
     espure_handle_t handle = NULL;
     espure_config_t config = ESPURE_CONFIG_DEFAULT();
     config.use_psram = false;

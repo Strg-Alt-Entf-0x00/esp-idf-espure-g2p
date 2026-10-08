@@ -201,13 +201,13 @@ espure_err_t espure_dictionary_load_embedded(espure_dictionary_t* dict,
         ESP_LOGE(TAG, "English dictionary not compiled (enable CONFIG_ESPURE_LANG_EN)");
         return ESPURE_ERR_NOT_FOUND;
 #endif
-    } else if (strcmp(lang, "de-DE-standard") == 0 || strcmp(lang, "de") == 0) {
+    } else if (strcmp(lang, "de-DE-standard") == 0 || strcmp(lang, "de") == 0 || strcmp(lang, "de_DE") == 0) {
 #ifdef CONFIG_ESPURE_LANG_DE
-        extern const espure_dict_entry_t espure_de_dict[];
-        extern const size_t espure_de_dict_size;
+        extern const espure_dict_entry_t DICT_DE_DE[];
+        extern const size_t DICT_DE_DE_SIZE;
         
-        dict->entries = (espure_dict_entry_t*)espure_de_dict;
-        dict->count = espure_de_dict_size;
+        dict->entries = (espure_dict_entry_t*)DICT_DE_DE;
+        dict->count = DICT_DE_DE_SIZE;
         
         ESP_LOGI(TAG, "[OK] Loaded DE dictionary: %zu entries", dict->count);
 #else
@@ -335,7 +335,7 @@ espure_err_t espure_translator_init(const char* lang,
     tr->phoneme_table = phoneme_table;
     tr->dictionary = dictionary;
     tr->config = config;
-    if (lang) { strlcpy(tr->lang, lang, sizeof(tr->lang)); } else { strcpy(tr->lang, "en"); }
+    if (lang) { strlcpy(tr->lang, lang, sizeof(tr->lang)); } else { strlcpy(tr->lang, "en", sizeof(tr->lang)); }
     tr->heap_used = sizeof(espure_translator_t);
     
     // Setup letter classification
@@ -489,8 +489,8 @@ espure_err_t espure_translator_phonemize(espure_translator_t* translator,
         if (entry_flags == 1) {
             size_t len = strlen(phonemes);
             if (result_len + len + 2 < 1024) {
-                if (result_len > 0) { strcat(result, " "); result_len++; }
-                strcat(result, phonemes);
+                if (result_len > 0) { strlcat(result, " ", 1024); result_len++; }
+                strlcat(result, phonemes, 1024);
                 result_len += len;
             }
             continue;
