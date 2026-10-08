@@ -18,7 +18,7 @@ def normalize_ipa(ipa_str):
     }
     for k, v in replacements.items(): ipa = ipa.replace(k, v)
     ipa = ipa.replace('n', 'ən').replace('əən', 'ən')
-    for c in ['ˈ', 'ˌ', '.', 'ː', 'ˑ', '̯', '͡', '̥', 'ʰ', '(', ')', '‿', ' ']: ipa = ipa.replace(c, '')
+    for c in ['ˈ', 'ˌ', '.', 'ː', 'ˑ', '̯', '͡', '̥', 'ʰ', '(', ')', '‿', ' ', 'ʔ']: ipa = ipa.replace(c, '')
     return ipa.strip()
 
 print("Loading Ground Truth...")

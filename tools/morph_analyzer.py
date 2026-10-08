@@ -16,6 +16,9 @@ class GermanMorphAnalyzer:
                          "wieder", "zer", "zu", "zurecht", "zurück", "zusammen", "zwischen",
                          "bundes", "kinder", "haupt", "sonder", "super", "halb", "lieblings"}
                          
+        self.inseparable_prefixes = {"be", "emp", "ent", "er", "ge", "ver", "zer"}
+        self.separable_prefixes = self.prefixes - self.inseparable_prefixes
+                         
         self.suffixes = {"bar", "chen", "ei", "en", "end", "er", "haft", "heit", "ie", "ig", "in", 
                          "isch", "keit", "lein", "lich", "ling", "nis", "sal", "sam", "schaft", 
                          "tum", "ung", "werk", "los", "voll", "mäßig", "innen",
@@ -24,7 +27,8 @@ class GermanMorphAnalyzer:
         self.terminal_suffixes = {"e", "en", "er", "es", "em", "s", "t", "st", "te", "ten", "tet", "test", 
                                   "ete", "eten", "etet", "etest",
                                   "nd", "nde", "nden", "ndem", "ndes", "nder", "n", "est", "este", "esten", 
-                                  "ester", "estes", "der", "dem", "den", "des"}
+                                  "ester", "estes", "der", "dem", "den", "des",
+                                  "ende", "enden", "endem", "endes", "ender"}
                                   
         self.short_roots = {"ei", "öl", "au"}
                          
@@ -95,7 +99,7 @@ class GermanMorphAnalyzer:
                         
                 result += part + orig_link
                 
-                if is_root or is_suffix:
+                if is_root or is_suffix or part_lower in self.separable_prefixes:
                     prev_was_end = True
                 else:
                     prev_was_end = False

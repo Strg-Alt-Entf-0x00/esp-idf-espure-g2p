@@ -14,6 +14,11 @@ static const char* const prefixes[] = {
 };
 static const size_t num_prefixes = sizeof(prefixes) / sizeof(prefixes[0]);
 
+static const char* const inseparable_prefixes[] = {
+    "be", "emp", "ent", "er", "ge", "ver", "zer"
+};
+static const size_t num_inseparable = sizeof(inseparable_prefixes) / sizeof(inseparable_prefixes[0]);
+
 static const char* const suffixes[] = {
     "bar", "chen", "ei", "en", "end", "er", "haft", "heit", "ie", "ig", "in", 
     "isch", "keit", "lein", "lich", "ling", "nis", "sal", "sam", "schaft", 
@@ -26,7 +31,8 @@ static const char* const terminal_suffixes[] = {
     "e", "en", "er", "es", "em", "s", "t", "st", "te", "ten", "tet", "test", 
     "ete", "eten", "etet", "etest",
     "nd", "nde", "nden", "ndem", "ndes", "nder", "n", "est", "este", "esten", 
-    "ester", "estes", "der", "dem", "den", "des"
+    "ester", "estes", "der", "dem", "den", "des",
+    "ende", "enden", "endem", "endes", "ender"
 };
 static const size_t num_term_suffixes = sizeof(terminal_suffixes) / sizeof(terminal_suffixes[0]);
 
@@ -204,7 +210,9 @@ bool espure_morph_split(const char* word, char* out_buffer, size_t max_len) {
                 res_len += part_len;
             }
             
-            if (is_root || is_suffix) {
+            bool is_inseparable = is_in_array(inseparable_prefixes, num_inseparable, word + curr, rend - curr);
+            
+            if (is_root || is_suffix || (is_prefix && !is_inseparable)) {
                 prev_was_end = true;
             } else {
                 prev_was_end = false;
