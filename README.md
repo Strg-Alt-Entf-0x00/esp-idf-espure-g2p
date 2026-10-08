@@ -62,3 +62,23 @@ The extracted exceptions are automatically converted into binary-searchable C ar
 
 ### Step 6: Scientific Validation
 Finally, `tools/final_benchmark.py` runs the engine with both the rules and the dictionary. The result is a mathematically proven **100.00% accuracy** across hundreds of thousands of words.
+
+## Python Bindings (For TTS Training)
+We provide a Python wrapper compatible with the `espyak` API. This allows AI/TTS researchers to seamlessly use this C-based engine in their Python training pipelines (e.g. for VITS or Piper) by utilizing the compiled host executable.
+
+### Installation & Usage
+From the root directory:
+```bash
+pip install -e bindings/python
+```
+
+```python
+from espure_g2p import G2P
+
+# Initialize for German
+g2p = G2P("de")
+
+# Phonemize text
+ipa = g2p.phonemize("Hallo Welt")
+print(ipa)  # ˈhaloː vɛlt
+```
