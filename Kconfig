@@ -4,9 +4,18 @@ menu "espure Configuration"
         comment "Select languages to include in build"
         comment "Each language adds memory to the binary"
 
-        config ESPURE_LANG_DE_DE
-            bool "de_DE Dictionary (German)"
+        config ESPURE_LANG_DE
+            bool "German Dictionary (de_DE)"
             default y
+            help
+                Include German (de_DE) dictionary and phoneme rules.
+                Size: ~764 KB (compressed) or ~1.5 MB (binary array)
+
+        config ESPURE_LANG_EN
+            bool "English Dictionary (en)"
+            default n
+            help
+                Include English dictionary and phoneme rules.
 
     endmenu
 

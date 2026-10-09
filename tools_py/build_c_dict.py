@@ -18,6 +18,8 @@ const espure_dict_entry_t DICT_DE_DE[] = {
 """
 
 # Sort for binary search compatibility!
+# Force lowercase all keys so C strcmp binary search works!
+exceptions = {k.lower(): v for k, v in exceptions.items()}
 words = sorted(exceptions.keys())
 
 entries = []

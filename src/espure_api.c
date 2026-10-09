@@ -46,8 +46,12 @@ const char* espure_err_str(espure_err_t err) {
 
 /* Language availability table (compile-time configured) */
 static const char* available_languages[] = {
-#ifdef CONFIG_ESPURE_LANG_DE_DE
+#ifdef CONFIG_ESPURE_LANG_DE
     "de_DE",
+    "de",
+#endif
+#ifdef CONFIG_ESPURE_LANG_EN
+    "en",
 #endif
     NULL
 };

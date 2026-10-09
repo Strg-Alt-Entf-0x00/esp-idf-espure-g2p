@@ -250,7 +250,7 @@ static bool parse_phoneme(parser_state_t* state, espure_phoneme_t* phoneme) {
         size_t saved_pos = state->pos;
         if (read_token(state, g_keyword_buf, sizeof(g_keyword_buf))) {
             // DEBUG
-            printf("DEBUG: Read token '%s'\n", g_keyword_buf);
+            // printf("DEBUG: Read token '%s'\\n", g_keyword_buf);
             if (strcmp(g_keyword_buf, "endphoneme") == 0) {
                 break;
             }
