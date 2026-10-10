@@ -39817,7 +39817,13 @@ const espure_dict_entry_t DICT_DE_DE[] = {
     {"terzine", "tertsin@", 0},
     {"teschek", "teSek", 0},
     {"tessiner", "tesinr", 0},
+    {"test", "test", 0},
     {"testamentsvollstrecker", "testamentsfolStrekr", 0},
+    {"teste", "test@", 0},
+    {"testen", "test@n", 0},
+    {"tester", "testr", 0},
+    {"testet", "test@t", 0},
+    {"tests", "tests", 0},
     {"testergebnis", "test_ergepnis", 0},
     {"testierfähig", "testirfeix", 0},
     {"testperson", "testperzon", 0},
@@ -49896,4 +49902,4 @@ const espure_dict_entry_t DICT_DE_DE[] = {
     {"üäh", "e", 0},
     {"œuvre", "vr@", 0}
 };
-const size_t DICT_DE_DE_SIZE = 49888;
+const size_t DICT_DE_DE_SIZE = 49894;
