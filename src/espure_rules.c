@@ -240,7 +240,7 @@ espure_err_t espure_text_to_phonemes(const char* lang, const char* text, char* p
             group = &DE_DEFAULT_GROUP;
         }
         
-        ESP_LOGI("RULES", "Char '%c' (0x%02X) -> Group has %zu rules", c, c, group->count);
+        ESP_LOGD("RULES", "Char '%c' (0x%02X) -> Group has %zu rules", c, c, group->count);
         
         for (size_t r = 0; r < group->count; r++) {
             const espure_compiled_rule_t* rule = &group->rules[r];
@@ -255,7 +255,7 @@ espure_err_t espure_text_to_phonemes(const char* lang, const char* text, char* p
         }
         
         if (best_rule && best_points >= 0) {
-            printf("MATCH: '%s' -> '%s' (pts: %d)\n", best_rule->match_str, best_rule->phonemes, best_points);
+            ESP_LOGD("RULES", "MATCH: '%s' -> '%s' (pts: %d)", best_rule->match_str, best_rule->phonemes, best_points);
             size_t ph_len = strlen(best_rule->phonemes);
             if (out_idx + ph_len < out_size) {
                 memcpy(phonemes_out + out_idx, best_rule->phonemes, ph_len + 1);

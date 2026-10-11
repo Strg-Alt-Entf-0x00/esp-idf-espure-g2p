@@ -66,6 +66,10 @@ espure_err_t espure_parse_phoneme_string(
                     output[*out_count] = found;
                     (*out_count)++;
                 }
+            } else if (input[pos] == '#' || input[pos] == '%' || input[pos] == '-' || 
+                       input[pos] == ';' || input[pos] == '~' || input[pos] == '(' || 
+                       input[pos] == ')' || input[pos] == '|') {
+                // Silently skip boundary and rule metadata
             } else {
                 // Unknown character - skip with warning
                 ESP_LOGW(TAG, "Unknown phoneme char at pos %zu: '%c'", pos, input[pos]);
