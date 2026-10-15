@@ -6,7 +6,7 @@ from espyak.rule_compiler import RuleSet
 import pathlib
 
 RULES_IN = str(pathlib.Path(__file__).parent.parent / 'data' / 'dictsource' / 'de_DE_rules')
-OUTPUT_C = str(pathlib.Path(__file__).parent.parent / 'src' / 'de_DE_rules_data.c')
+OUTPUT_C = str(pathlib.Path(__file__).parent.parent / 'lang' / 'de_DE' / 'de_DE_rules_data.c')
 # Output header is not needed because espure_compiled_rules.h is already generic
 
 def export_rules():

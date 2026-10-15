@@ -15,15 +15,22 @@ int main(void) {
         return 1;
     }
     
-    const char* words[] = {"abarbeiteten", "aalende", "Aachener"};
+    const char* words[] = {
+        "könig", "könige", "königlich",
+        "fünfzig", "wenig", "wenige", "richtig",
+        "tag", "tage", "zug", "züge", "flug",
+        "hund", "hunde", "bad", "bäder", "geld", "gelder", "abend",
+        "ab", "dieb", "diebe", "gelb", "gelbe", "halb", "halbe"
+    };
     char ipa_buf[128];
+    int count = sizeof(words) / sizeof(words[0]);
     
-    for (int i = 0; i < 3; i++) {
-        err = espure_phonemize(handle, words[i], ipa_buf, sizeof(ipa_buf), true);
+    for (int i = 0; i < count; i++) {
+        err = espure_phonemize(handle, words[i], ipa_buf, sizeof(ipa_buf), false);
         if (err == ESPURE_OK) {
-            printf("Word: %s -> IPA: %s\n", words[i], ipa_buf);
+            printf("[TEST] %-12s -> %s\n", words[i], ipa_buf);
         } else {
-            printf("Word: %s -> ERROR %d\n", words[i], err);
+            printf("[TEST] %-12s -> ERROR %d\n", words[i], err);
         }
     }
     

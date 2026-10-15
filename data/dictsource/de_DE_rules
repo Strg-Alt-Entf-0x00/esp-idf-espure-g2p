@@ -158,8 +158,8 @@ ÿ	ÿ	// y + U+0308 = U+00FF
      _) achs (@P4  'aks
      _) achs (el   'aks
      j) ag (d      A:k
-        age (_$w_alt  'A:Z@
-        age (n_$p_alt  'A:Z@
+     @@) age (_        'A:Z@
+     @@) age (n_       'A:Z@
      _) air        _^_EN
      m) air (_     aI3
         ai (sch    A:I
@@ -623,7 +623,7 @@ r     p) ay         EI
         fenster	fEnst3
      _) fertig (C@P6 f'ErtIC
      _) fest (@P4  f'Est
-     _) flug       fl'u:g
+     _) flug       fl'u:k
         foto       fo:to:
      _) free       _^_EN
      _) feudal     f%OYdA:l
@@ -774,7 +774,12 @@ r     p) ay         EI
         i (d_      'i:
         i (dee     %i:
         i (erin    =i:
-     @) ig (+      Ig#       // [ig] or [iC]
+     @) ig (lich   Ik
+     @) ig (keit   IC
+     @) ig (L02    IC
+     @) ig (_      IC
+     @) ig (A      Ig
+     @) ig (+      IC
         igh (K     _^_EN
         ine (_	'i:n@
         inen (_	'i:n@n

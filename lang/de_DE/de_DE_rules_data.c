@@ -87,8 +87,8 @@ static const uint8_t de_DE_g1_97_prog_82[] = {0x02, 0x69, 0x73, 0x69, 0x65, 0x72
 static const uint8_t de_DE_g1_97_prog_83[] = {0x63, 0x68, 0x73, 0x08, 0x02, 0x15, 0x0e, 0x80, 0x84, 0x84};
 static const uint8_t de_DE_g1_97_prog_84[] = {0x63, 0x68, 0x73, 0x08, 0x02, 0x65, 0x6c};
 static const uint8_t de_DE_g1_97_prog_85[] = {0x67, 0x01, 0x6a, 0x02, 0x64};
-static const uint8_t de_DE_g1_97_prog_86[] = {0x67, 0x65, 0x02, 0x20, 0x1c, 0x11};
-static const uint8_t de_DE_g1_97_prog_87[] = {0x67, 0x65, 0x02, 0x6e, 0x20, 0x1c, 0x21};
+static const uint8_t de_DE_g1_97_prog_86[] = {0x67, 0x65, 0x01, 0x15, 0x15, 0x02, 0x20};
+static const uint8_t de_DE_g1_97_prog_87[] = {0x67, 0x65, 0x01, 0x15, 0x15, 0x02, 0x6e, 0x20};
 static const uint8_t de_DE_g1_97_prog_88[] = {0x69, 0x72, 0x08};
 static const uint8_t de_DE_g1_97_prog_89[] = {0x69, 0x72, 0x01, 0x6d, 0x02, 0x20};
 static const uint8_t de_DE_g1_97_prog_90[] = {0x69, 0x02, 0x73, 0x63, 0x68};
@@ -221,8 +221,8 @@ static const espure_compiled_rule_t de_DE_g1_97[] = {
     {de_DE_g1_97_prog_83, 10, "'aks", "achs"},
     {de_DE_g1_97_prog_84, 7, "'aks", "achs"},
     {de_DE_g1_97_prog_85, 5, "A:k", "ag"},
-    {de_DE_g1_97_prog_86, 6, "'A:Z@", "age"},
-    {de_DE_g1_97_prog_87, 7, "'A:Z@", "age"},
+    {de_DE_g1_97_prog_86, 7, "'A:Z@", "age"},
+    {de_DE_g1_97_prog_87, 8, "'A:Z@", "age"},
     {de_DE_g1_97_prog_88, 3, "_^_EN", "air"},
     {de_DE_g1_97_prog_89, 6, "aI3", "air"},
     {de_DE_g1_97_prog_90, 5, "A:I", "ai"},
@@ -954,7 +954,7 @@ static const espure_compiled_rule_t de_DE_g1_102[] = {
     {de_DE_g1_102_prog_10, 6, "fEnst3", "fenster"},
     {de_DE_g1_102_prog_11, 14, "f'ErtIC", "fertig"},
     {de_DE_g1_102_prog_12, 10, "f'Est", "fest"},
-    {de_DE_g1_102_prog_13, 4, "fl'u:g", "flug"},
+    {de_DE_g1_102_prog_13, 4, "fl'u:k", "flug"},
     {de_DE_g1_102_prog_14, 3, "fo:to:", "foto"},
     {de_DE_g1_102_prog_15, 4, "_^_EN", "free"},
     {de_DE_g1_102_prog_16, 6, "f%OYdA:l", "feudal"},
@@ -1132,50 +1132,55 @@ static const uint8_t de_DE_g1_105_prog_13[] = {0x01, 0x15, 0x02, 0x61, 0x74, 0x2
 static const uint8_t de_DE_g1_105_prog_14[] = {0x02, 0x64, 0x20};
 static const uint8_t de_DE_g1_105_prog_15[] = {0x02, 0x64, 0x65, 0x65};
 static const uint8_t de_DE_g1_105_prog_16[] = {0x02, 0x65, 0x72, 0x69, 0x6e};
-static const uint8_t de_DE_g1_105_prog_17[] = {0x67, 0x01, 0x15, 0x02, 0x0c};
-static const uint8_t de_DE_g1_105_prog_18[] = {0x67, 0x68, 0x02, 0x19};
-static const uint8_t de_DE_g1_105_prog_19[] = {0x6e, 0x65, 0x02, 0x20};
-static const uint8_t de_DE_g1_105_prog_20[] = {0x6e, 0x65, 0x6e, 0x02, 0x20};
-static const uint8_t de_DE_g1_105_prog_21[] = {0x02, 0x69};
-static const uint8_t de_DE_g1_105_prog_22[] = {0x6b, 0x02, 0x20};
-static const uint8_t de_DE_g1_105_prog_23[] = {0x6b, 0x01, 0x73, 0x02, 0x20};
-static const uint8_t de_DE_g1_105_prog_24[] = {0x6b, 0x01, 0x72, 0x62, 0x02, 0x20};
-static const uint8_t de_DE_g1_105_prog_25[] = {0x6b, 0x01, 0x74, 0x15, 0x02, 0x20};
-static const uint8_t de_DE_g1_105_prog_26[] = {0x6b, 0x01, 0x74, 0x69, 0x6c, 0x6f, 0x70};
-static const uint8_t de_DE_g1_105_prog_27[] = {0x6b, 0x01, 0x15, 0x02, 0x65, 0x6c, 0x20};
-static const uint8_t de_DE_g1_105_prog_28[] = {0x6c, 0x6c, 0x65, 0x67, 0x08};
-static const uint8_t de_DE_g1_105_prog_29[] = {0x08, 0x02, 0x6c, 0x6c, 0x75};
-static const uint8_t de_DE_g1_105_prog_30[] = {0x08, 0x02, 0x6d, 0x61, 0x67};
-static const uint8_t de_DE_g1_105_prog_31[] = {0x02, 0x11, 0x43, 0x6f, 0x20};
-static const uint8_t de_DE_g1_105_prog_32[] = {0x6b, 0x02, 0x6f, 0x20};
-static const uint8_t de_DE_g1_105_prog_33[] = {0x02, 0x6c, 0x20};
-static const uint8_t de_DE_g1_105_prog_34[] = {0x01, 0x6b, 0x02, 0x6c, 0x20};
-static const uint8_t de_DE_g1_105_prog_35[] = {0x6d, 0x01, 0x0a, 0x02, 0x6f, 0x20};
-static const uint8_t de_DE_g1_105_prog_36[] = {0x01, 0x72, 0x02, 0x6e, 0x61, 0x20};
-static const uint8_t de_DE_g1_105_prog_37[] = {0x6e, 0x08, 0x02, 0x6b};
-static const uint8_t de_DE_g1_105_prog_38[] = {0x6e, 0x74, 0x65, 0x72, 0x08};
-static const uint8_t de_DE_g1_105_prog_39[] = {0x6e, 0x01, 0x0a, 0x02, 0x20};
-static const uint8_t de_DE_g1_105_prog_40[] = {0x6e, 0x01, 0x6c, 0x02, 0x20};
-static const uint8_t de_DE_g1_105_prog_41[] = {0x6e, 0x01, 0x6d, 0x02, 0x20};
-static const uint8_t de_DE_g1_105_prog_42[] = {0x6e, 0x01, 0x73, 0x02, 0x20};
-static const uint8_t de_DE_g1_105_prog_43[] = {0x6e, 0x01, 0x7a, 0x02, 0x20};
-static const uint8_t de_DE_g1_105_prog_44[] = {0x6e, 0x01, 0x15, 0x02, 0x6f, 0x20};
-static const uint8_t de_DE_g1_105_prog_45[] = {0x6f, 0x6e, 0x01, 0x15, 0x02, 0x20};
-static const uint8_t de_DE_g1_105_prog_46[] = {0x6f, 0x6e, 0x01, 0x67, 0x02, 0x20};
-static const uint8_t de_DE_g1_105_prog_47[] = {0x6f, 0x01, 0x15, 0x02, 0x6e};
-static const uint8_t de_DE_g1_105_prog_48[] = {0x6f};
-static const uint8_t de_DE_g1_105_prog_49[] = {0x73, 0x01, 0x15, 0x02, 0x20};
-static const uint8_t de_DE_g1_105_prog_50[] = {0x73, 0x63, 0x68, 0x01, 0x0a, 0x02, 0x20};
-static const uint8_t de_DE_g1_105_prog_51[] = {0x73, 0x02, 0x6d, 0x75, 0x73, 0x20};
-static const uint8_t de_DE_g1_105_prog_52[] = {0x73, 0x74, 0x61, 0x6e};
-static const uint8_t de_DE_g1_105_prog_53[] = {0x73, 0x74, 0x69, 0x73, 0x63, 0x68, 0x02, 0x20};
-static const uint8_t de_DE_g1_105_prog_54[] = {0x73, 0x74, 0x01, 0x15, 0x02, 0x20};
-static const uint8_t de_DE_g1_105_prog_55[] = {0x74, 0x01, 0x15, 0x02, 0x20, 0x18};
-static const uint8_t de_DE_g1_105_prog_56[] = {0x74, 0x65, 0x01, 0x15, 0x02, 0x20};
-static const uint8_t de_DE_g1_105_prog_57[] = {0x74, 0xc3, 0xa4, 0x74, 0x01, 0x15, 0x02, 0x20, 0x0e, 0x80, 0x80, 0x84};
-static const uint8_t de_DE_g1_105_prog_58[] = {0x75, 0x6d, 0x01, 0x0a, 0x02, 0x20};
-static const uint8_t de_DE_g1_105_prog_59[] = {0x01, 0x73, 0x15, 0x02, 0x76, 0x20};
-static const uint8_t de_DE_g1_105_prog_60[] = {0x01, 0x74, 0x15, 0x02, 0x76, 0x20};
+static const uint8_t de_DE_g1_105_prog_17[] = {0x67, 0x01, 0x15, 0x02, 0x6c, 0x69, 0x63, 0x68};
+static const uint8_t de_DE_g1_105_prog_18[] = {0x67, 0x01, 0x15, 0x02, 0x6b, 0x65, 0x69, 0x74};
+static const uint8_t de_DE_g1_105_prog_19[] = {0x67, 0x01, 0x15, 0x02, 0x12, 0x43};
+static const uint8_t de_DE_g1_105_prog_20[] = {0x67, 0x01, 0x15, 0x02, 0x20};
+static const uint8_t de_DE_g1_105_prog_21[] = {0x67, 0x01, 0x15, 0x02, 0x11, 0x41};
+static const uint8_t de_DE_g1_105_prog_22[] = {0x67, 0x01, 0x15, 0x02, 0x0c};
+static const uint8_t de_DE_g1_105_prog_23[] = {0x67, 0x68, 0x02, 0x19};
+static const uint8_t de_DE_g1_105_prog_24[] = {0x6e, 0x65, 0x02, 0x20};
+static const uint8_t de_DE_g1_105_prog_25[] = {0x6e, 0x65, 0x6e, 0x02, 0x20};
+static const uint8_t de_DE_g1_105_prog_26[] = {0x02, 0x69};
+static const uint8_t de_DE_g1_105_prog_27[] = {0x6b, 0x02, 0x20};
+static const uint8_t de_DE_g1_105_prog_28[] = {0x6b, 0x01, 0x73, 0x02, 0x20};
+static const uint8_t de_DE_g1_105_prog_29[] = {0x6b, 0x01, 0x72, 0x62, 0x02, 0x20};
+static const uint8_t de_DE_g1_105_prog_30[] = {0x6b, 0x01, 0x74, 0x15, 0x02, 0x20};
+static const uint8_t de_DE_g1_105_prog_31[] = {0x6b, 0x01, 0x74, 0x69, 0x6c, 0x6f, 0x70};
+static const uint8_t de_DE_g1_105_prog_32[] = {0x6b, 0x01, 0x15, 0x02, 0x65, 0x6c, 0x20};
+static const uint8_t de_DE_g1_105_prog_33[] = {0x6c, 0x6c, 0x65, 0x67, 0x08};
+static const uint8_t de_DE_g1_105_prog_34[] = {0x08, 0x02, 0x6c, 0x6c, 0x75};
+static const uint8_t de_DE_g1_105_prog_35[] = {0x08, 0x02, 0x6d, 0x61, 0x67};
+static const uint8_t de_DE_g1_105_prog_36[] = {0x02, 0x11, 0x43, 0x6f, 0x20};
+static const uint8_t de_DE_g1_105_prog_37[] = {0x6b, 0x02, 0x6f, 0x20};
+static const uint8_t de_DE_g1_105_prog_38[] = {0x02, 0x6c, 0x20};
+static const uint8_t de_DE_g1_105_prog_39[] = {0x01, 0x6b, 0x02, 0x6c, 0x20};
+static const uint8_t de_DE_g1_105_prog_40[] = {0x6d, 0x01, 0x0a, 0x02, 0x6f, 0x20};
+static const uint8_t de_DE_g1_105_prog_41[] = {0x01, 0x72, 0x02, 0x6e, 0x61, 0x20};
+static const uint8_t de_DE_g1_105_prog_42[] = {0x6e, 0x08, 0x02, 0x6b};
+static const uint8_t de_DE_g1_105_prog_43[] = {0x6e, 0x74, 0x65, 0x72, 0x08};
+static const uint8_t de_DE_g1_105_prog_44[] = {0x6e, 0x01, 0x0a, 0x02, 0x20};
+static const uint8_t de_DE_g1_105_prog_45[] = {0x6e, 0x01, 0x6c, 0x02, 0x20};
+static const uint8_t de_DE_g1_105_prog_46[] = {0x6e, 0x01, 0x6d, 0x02, 0x20};
+static const uint8_t de_DE_g1_105_prog_47[] = {0x6e, 0x01, 0x73, 0x02, 0x20};
+static const uint8_t de_DE_g1_105_prog_48[] = {0x6e, 0x01, 0x7a, 0x02, 0x20};
+static const uint8_t de_DE_g1_105_prog_49[] = {0x6e, 0x01, 0x15, 0x02, 0x6f, 0x20};
+static const uint8_t de_DE_g1_105_prog_50[] = {0x6f, 0x6e, 0x01, 0x15, 0x02, 0x20};
+static const uint8_t de_DE_g1_105_prog_51[] = {0x6f, 0x6e, 0x01, 0x67, 0x02, 0x20};
+static const uint8_t de_DE_g1_105_prog_52[] = {0x6f, 0x01, 0x15, 0x02, 0x6e};
+static const uint8_t de_DE_g1_105_prog_53[] = {0x6f};
+static const uint8_t de_DE_g1_105_prog_54[] = {0x73, 0x01, 0x15, 0x02, 0x20};
+static const uint8_t de_DE_g1_105_prog_55[] = {0x73, 0x63, 0x68, 0x01, 0x0a, 0x02, 0x20};
+static const uint8_t de_DE_g1_105_prog_56[] = {0x73, 0x02, 0x6d, 0x75, 0x73, 0x20};
+static const uint8_t de_DE_g1_105_prog_57[] = {0x73, 0x74, 0x61, 0x6e};
+static const uint8_t de_DE_g1_105_prog_58[] = {0x73, 0x74, 0x69, 0x73, 0x63, 0x68, 0x02, 0x20};
+static const uint8_t de_DE_g1_105_prog_59[] = {0x73, 0x74, 0x01, 0x15, 0x02, 0x20};
+static const uint8_t de_DE_g1_105_prog_60[] = {0x74, 0x01, 0x15, 0x02, 0x20, 0x18};
+static const uint8_t de_DE_g1_105_prog_61[] = {0x74, 0x65, 0x01, 0x15, 0x02, 0x20};
+static const uint8_t de_DE_g1_105_prog_62[] = {0x74, 0xc3, 0xa4, 0x74, 0x01, 0x15, 0x02, 0x20, 0x0e, 0x80, 0x80, 0x84};
+static const uint8_t de_DE_g1_105_prog_63[] = {0x75, 0x6d, 0x01, 0x0a, 0x02, 0x20};
+static const uint8_t de_DE_g1_105_prog_64[] = {0x01, 0x73, 0x15, 0x02, 0x76, 0x20};
+static const uint8_t de_DE_g1_105_prog_65[] = {0x01, 0x74, 0x15, 0x02, 0x76, 0x20};
 static const espure_compiled_rule_t de_DE_g1_105[] = {
     {de_DE_g1_105_prog_0, 3, "i:", "i"},
     {de_DE_g1_105_prog_1, 0, "i:", "i"},
@@ -1194,50 +1199,55 @@ static const espure_compiled_rule_t de_DE_g1_105[] = {
     {de_DE_g1_105_prog_14, 3, "'i:", "i"},
     {de_DE_g1_105_prog_15, 4, "%i:", "i"},
     {de_DE_g1_105_prog_16, 5, "=i:", "i"},
-    {de_DE_g1_105_prog_17, 5, "Ig#", "ig"},
-    {de_DE_g1_105_prog_18, 4, "_^_EN", "igh"},
-    {de_DE_g1_105_prog_19, 4, "'i:n@", "ine"},
-    {de_DE_g1_105_prog_20, 5, "'i:n@n", "inen"},
-    {de_DE_g1_105_prog_21, 2, "i:_!", "i"},
-    {de_DE_g1_105_prog_22, 3, "Ik", "ik"},
-    {de_DE_g1_105_prog_23, 5, "'i:k", "ik"},
-    {de_DE_g1_105_prog_24, 6, "'i:k", "ik"},
-    {de_DE_g1_105_prog_25, 6, "=i:k", "ik"},
-    {de_DE_g1_105_prog_26, 7, "'i:k", "ik"},
-    {de_DE_g1_105_prog_27, 7, "'i:k", "ik"},
-    {de_DE_g1_105_prog_28, 5, ",Ile:g", "illeg"},
-    {de_DE_g1_105_prog_29, 5, "%I", "i"},
-    {de_DE_g1_105_prog_30, 5, "I", "i"},
-    {de_DE_g1_105_prog_31, 5, "'i:", "i"},
-    {de_DE_g1_105_prog_32, 4, "i:k", "ik"},
-    {de_DE_g1_105_prog_33, 3, "'i:", "i"},
-    {de_DE_g1_105_prog_34, 5, "I", "i"},
-    {de_DE_g1_105_prog_35, 6, "=i:m", "im"},
-    {de_DE_g1_105_prog_36, 6, "'i:", "i"},
-    {de_DE_g1_105_prog_37, 4, "%In", "in"},
-    {de_DE_g1_105_prog_38, 5, "Int@r", "inter"},
-    {de_DE_g1_105_prog_39, 5, "i2n", "in"},
-    {de_DE_g1_105_prog_40, 5, "'i:n", "in"},
-    {de_DE_g1_105_prog_41, 5, "'i:n", "in"},
-    {de_DE_g1_105_prog_42, 5, "'i:n", "in"},
-    {de_DE_g1_105_prog_43, 5, "'i:n", "in"},
-    {de_DE_g1_105_prog_44, 6, "'i:n", "in"},
-    {de_DE_g1_105_prog_45, 6, "j'o:n", "ion"},
-    {de_DE_g1_105_prog_46, 6, "i'o:n", "ion"},
-    {de_DE_g1_105_prog_47, 5, "Io:", "io"},
-    {de_DE_g1_105_prog_48, 1, "Io:", "io"},
-    {de_DE_g1_105_prog_49, 5, "Is", "is"},
-    {de_DE_g1_105_prog_50, 7, "=IS", "isch"},
-    {de_DE_g1_105_prog_51, 6, "'Is", "is"},
-    {de_DE_g1_105_prog_52, 4, "=IstA:n", "istan"},
-    {de_DE_g1_105_prog_53, 8, "'IstIS", "istisch"},
-    {de_DE_g1_105_prog_54, 6, "'Ist", "ist"},
-    {de_DE_g1_105_prog_55, 6, "'It", "it"},
-    {de_DE_g1_105_prog_56, 6, "'i:t@", "ite"},
-    {de_DE_g1_105_prog_57, 12, "i:t'E:t", "ität"},
-    {de_DE_g1_105_prog_58, 6, "=i:Um", "ium"},
-    {de_DE_g1_105_prog_59, 6, "'i:", "i"},
-    {de_DE_g1_105_prog_60, 6, "'i:", "i"},
+    {de_DE_g1_105_prog_17, 8, "Ik", "ig"},
+    {de_DE_g1_105_prog_18, 8, "IC", "ig"},
+    {de_DE_g1_105_prog_19, 6, "IC", "ig"},
+    {de_DE_g1_105_prog_20, 5, "IC", "ig"},
+    {de_DE_g1_105_prog_21, 6, "Ig", "ig"},
+    {de_DE_g1_105_prog_22, 5, "IC", "ig"},
+    {de_DE_g1_105_prog_23, 4, "_^_EN", "igh"},
+    {de_DE_g1_105_prog_24, 4, "'i:n@", "ine"},
+    {de_DE_g1_105_prog_25, 5, "'i:n@n", "inen"},
+    {de_DE_g1_105_prog_26, 2, "i:_!", "i"},
+    {de_DE_g1_105_prog_27, 3, "Ik", "ik"},
+    {de_DE_g1_105_prog_28, 5, "'i:k", "ik"},
+    {de_DE_g1_105_prog_29, 6, "'i:k", "ik"},
+    {de_DE_g1_105_prog_30, 6, "=i:k", "ik"},
+    {de_DE_g1_105_prog_31, 7, "'i:k", "ik"},
+    {de_DE_g1_105_prog_32, 7, "'i:k", "ik"},
+    {de_DE_g1_105_prog_33, 5, ",Ile:g", "illeg"},
+    {de_DE_g1_105_prog_34, 5, "%I", "i"},
+    {de_DE_g1_105_prog_35, 5, "I", "i"},
+    {de_DE_g1_105_prog_36, 5, "'i:", "i"},
+    {de_DE_g1_105_prog_37, 4, "i:k", "ik"},
+    {de_DE_g1_105_prog_38, 3, "'i:", "i"},
+    {de_DE_g1_105_prog_39, 5, "I", "i"},
+    {de_DE_g1_105_prog_40, 6, "=i:m", "im"},
+    {de_DE_g1_105_prog_41, 6, "'i:", "i"},
+    {de_DE_g1_105_prog_42, 4, "%In", "in"},
+    {de_DE_g1_105_prog_43, 5, "Int@r", "inter"},
+    {de_DE_g1_105_prog_44, 5, "i2n", "in"},
+    {de_DE_g1_105_prog_45, 5, "'i:n", "in"},
+    {de_DE_g1_105_prog_46, 5, "'i:n", "in"},
+    {de_DE_g1_105_prog_47, 5, "'i:n", "in"},
+    {de_DE_g1_105_prog_48, 5, "'i:n", "in"},
+    {de_DE_g1_105_prog_49, 6, "'i:n", "in"},
+    {de_DE_g1_105_prog_50, 6, "j'o:n", "ion"},
+    {de_DE_g1_105_prog_51, 6, "i'o:n", "ion"},
+    {de_DE_g1_105_prog_52, 5, "Io:", "io"},
+    {de_DE_g1_105_prog_53, 1, "Io:", "io"},
+    {de_DE_g1_105_prog_54, 5, "Is", "is"},
+    {de_DE_g1_105_prog_55, 7, "=IS", "isch"},
+    {de_DE_g1_105_prog_56, 6, "'Is", "is"},
+    {de_DE_g1_105_prog_57, 4, "=IstA:n", "istan"},
+    {de_DE_g1_105_prog_58, 8, "'IstIS", "istisch"},
+    {de_DE_g1_105_prog_59, 6, "'Ist", "ist"},
+    {de_DE_g1_105_prog_60, 6, "'It", "it"},
+    {de_DE_g1_105_prog_61, 6, "'i:t@", "ite"},
+    {de_DE_g1_105_prog_62, 12, "i:t'E:t", "ität"},
+    {de_DE_g1_105_prog_63, 6, "=i:Um", "ium"},
+    {de_DE_g1_105_prog_64, 6, "'i:", "i"},
+    {de_DE_g1_105_prog_65, 6, "'i:", "i"},
 };
 
 // --- de_DE_g1_106 ---
@@ -2045,12 +2055,12 @@ static const espure_compiled_rule_t de_DE_g1_116[] = {
     {de_DE_g1_116_prog_30, 14, "tst@n", "tsten"},
     {de_DE_g1_116_prog_31, 14, "tst3", "tster"},
     {de_DE_g1_116_prog_32, 14, "tst@s", "tstes"},
-    {de_DE_g1_116_prog_33, 13, "test", "test"},
-    {de_DE_g1_116_prog_34, 14, "test@", "teste"},
-    {de_DE_g1_116_prog_35, 15, "test@m", "testem"},
-    {de_DE_g1_116_prog_36, 15, "test@n", "testen"},
-    {de_DE_g1_116_prog_37, 15, "test3", "tester"},
-    {de_DE_g1_116_prog_38, 15, "test@s", "testes"},
+    {de_DE_g1_116_prog_33, 13, "t@st", "test"},
+    {de_DE_g1_116_prog_34, 14, "t@st@", "teste"},
+    {de_DE_g1_116_prog_35, 15, "t@st@m", "testem"},
+    {de_DE_g1_116_prog_36, 15, "t@st@n", "testen"},
+    {de_DE_g1_116_prog_37, 15, "t@st3", "tester"},
+    {de_DE_g1_116_prog_38, 15, "t@st@s", "testes"},
     {de_DE_g1_116_prog_39, 6, "tal'Ent", "talent"},
     {de_DE_g1_116_prog_40, 3, "_^_EN", "talk"},
     {de_DE_g1_116_prog_41, 2, "tS", "tch"},
@@ -2652,7 +2662,7 @@ const espure_rule_group_t DE_GROUPS1[256] = {
     {de_DE_g1_102, 23},
     {de_DE_g1_103, 27},
     {de_DE_g1_104, 43},
-    {de_DE_g1_105, 61},
+    {de_DE_g1_105, 66},
     {de_DE_g1_106, 2},
     {de_DE_g1_107, 14},
     {de_DE_g1_108, 40},

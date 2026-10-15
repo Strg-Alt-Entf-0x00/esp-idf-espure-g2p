@@ -55,6 +55,17 @@ static bool check_letter_group(unsigned char letter, unsigned char group) {
     return false;
 }
 
+static bool check_lang_letter_group(unsigned char letter, unsigned char group) {
+    if (!letter) return false;
+    if (group == 'B') return strchr("lr", letter) != NULL; // .L01
+    if (group == 'C') return strchr("cfhkpqstz", letter) != NULL; // .L02 unvoiced
+    if (group == 'D') return letter == 'a' || letter == 0xE4 || letter == 0xA4; // .L03
+    if (group == 'E') return letter == 'o' || letter == 0xF6 || letter == 0xB6; // .L04
+    if (group == 'F') return letter >= '0' && letter <= '9'; // .L05
+    if (group == 'G') return letter >= '0' && letter <= '5'; // .L06
+    return check_letter_group(letter, group);
+}
+
 // VM execution
 static int match_rule(const unsigned char* word, size_t word_len, size_t pos, const espure_compiled_rule_t* rule) {
     const uint8_t* prog = rule->prog;
@@ -76,6 +87,7 @@ static int match_rule(const unsigned char* word, size_t word_len, size_t pos, co
             if (rb == RULE_PRE_ATSTART) {
                 check_atstart = true;
                 match_type = 1; // PRE
+                points += 20;
             } else if (rb == RULE_PRE) {
                 match_type = 1; // PRE
             } else if (rb == RULE_POST) {
@@ -89,6 +101,7 @@ static int match_rule(const unsigned char* word, size_t word_len, size_t pos, co
                 unsigned char c2 = (match_type == 1) ? (pre_ptr >= 1 ? word[pre_ptr-1] : 0) : (post_ptr < word_len ? word[post_ptr] : 0);
                 if (c1 != c2 || c1 == 0) return -1;
                 if (match_type == 1) pre_ptr--; else post_ptr++;
+                points += 20;
             } else if (rb == RULE_INC_SCORE) {
                 points += 20;
             } else if (rb == RULE_ENDING) {
@@ -96,10 +109,16 @@ static int match_rule(const unsigned char* word, size_t word_len, size_t pos, co
             } else if (rb == RULE_DIGIT) {
                 unsigned char c = (match_type == 1) ? (pre_ptr >= 0 ? word[pre_ptr--] : 0) : (post_ptr < word_len ? word[post_ptr++] : 0);
                 if (!(c >= '0' && c <= '9')) return -1;
-            } else if (rb == RULE_LETTERGP || rb == RULE_LETTERGP2) {
+                points += 20;
+            } else if (rb == RULE_LETTERGP) {
                 uint8_t grp = prog[k++];
                 unsigned char c = (match_type == 1) ? (pre_ptr >= 0 ? word[pre_ptr--] : 0) : (post_ptr < word_len ? word[post_ptr++] : 0);
                 if (!check_letter_group(c, grp)) return -1;
+                points += 20;
+            } else if (rb == RULE_LETTERGP2) {
+                uint8_t grp = prog[k++];
+                unsigned char c = (match_type == 1) ? (pre_ptr >= 0 ? word[pre_ptr--] : 0) : (post_ptr < word_len ? word[post_ptr++] : 0);
+                if (!check_lang_letter_group(c, grp)) return -1;
                 points += 20;
             } else if (rb == RULE_SYLLABLE) {
                 int syllable_count = 1;
@@ -126,12 +145,16 @@ static int match_rule(const unsigned char* word, size_t word_len, size_t pos, co
                 points += 20;
             } else if (rb == RULE_NOTVOWEL) {
                 unsigned char c = (match_type == 1) ? (pre_ptr >= 0 ? word[pre_ptr--] : 0) : (post_ptr < word_len ? word[post_ptr++] : 0);
-                if (is_vowel(c)) return -1;
+                if (is_vowel(c) || c == 0) return -1;
+                points += 20;
+            } else if (rb == RULE_NO_SUFFIX) {
+                points += 5;
             } else if (rb == RULE_DOLLAR) {
                 k++; // skip command
             } else if (rb == RULE_SPACE) {
                 unsigned char c = (match_type == 1) ? (pre_ptr >= 0 ? word[pre_ptr--] : 0) : (post_ptr < word_len ? word[post_ptr++] : 0);
                 if (c != ' ' && c != '\0' && c != '-') return -1;
+                points += 20;
             }
         } else {
             // Literal character match
