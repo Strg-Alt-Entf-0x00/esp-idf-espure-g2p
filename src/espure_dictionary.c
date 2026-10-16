@@ -209,6 +209,16 @@ espure_err_t espure_dictionary_load_embedded(espure_dictionary_t* dict,
 #endif
     } else if (strcmp(lang, "de-DE-standard") == 0 || strcmp(lang, "de") == 0 || strcmp(lang, "de_DE") == 0) {
 #ifdef CONFIG_ESPURE_LANG_DE
+    #ifdef CONFIG_ESPURE_DICT_HUFFMAN_TRIE
+        // Huffman compressed dictionary mode
+        // Dictionary is accessed via espure_dict_compressed_lookup() function
+        // No need to load entry array into memory
+        dict->entries = NULL;
+        dict->count = 0;  // Unknown in compressed mode (block-based access)
+        
+        ESP_LOGI(TAG, "[OK] Loaded DE dictionary: Huffman compressed (764 KB)");
+    #else
+        // Binary array mode (fast binary search)
         extern const espure_dict_entry_t DICT_DE_DE[];
         extern const size_t DICT_DE_DE_SIZE;
         
@@ -216,6 +226,7 @@ espure_err_t espure_dictionary_load_embedded(espure_dictionary_t* dict,
         dict->count = DICT_DE_DE_SIZE;
         
         ESP_LOGI(TAG, "[OK] Loaded DE dictionary: %zu entries", dict->count);
+    #endif
 #else
         ESP_LOGE(TAG, "German dictionary not compiled (enable CONFIG_ESPURE_LANG_DE)");
         return ESPURE_ERR_NOT_FOUND;
