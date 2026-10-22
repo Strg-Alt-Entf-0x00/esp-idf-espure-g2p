@@ -6,6 +6,7 @@
  */
 
 #include "espure_internal.h"
+#include <inttypes.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -118,7 +119,7 @@ esp_err_t espure_dict_load_binary(const uint8_t *data, size_t size, espure_dicti
     out_dict->count = header->num_entries;
     out_dict->binary_data = data;  // Keep reference to prevent free
     
-    ESP_LOGI(TAG, "Loaded binary dictionary: %lu entries, %lu bytes", 
+    ESP_LOGI(TAG, "Loaded binary dictionary: %" PRIu32 " entries, %zu bytes",
              header->num_entries, size);
     ESP_LOGI(TAG, "  Memory used: %zu KB (pointers only)", 
              (header->num_entries * sizeof(espure_dict_entry_t)) / 1024);

@@ -262,7 +262,7 @@ espure_err_t espure_execute_phoneme_programs_on_string(
         return ESPURE_OK;  // Empty string, nothing to do
     }
     
-    espure_assign_word_stress(tr, plist, plist_len);
+    espure_assign_word_stress(plist, plist_len);
 
     // Execute phoneme programs
     err = espure_phoneme_program_run(phoneme_table, plist, &plist_len, 64);

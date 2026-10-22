@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <limits.h>
 #include <esp_log.h>
 
 // VM Opcodes
@@ -68,6 +69,12 @@ static bool check_lang_letter_group(unsigned char letter, unsigned char group) {
 
 // VM execution
 static int match_rule(const unsigned char* word, size_t word_len, size_t pos, const espure_compiled_rule_t* rule) {
+    size_t match_len = strlen(rule->match_str);
+    if (pos > (size_t)INT_MAX ||
+        match_len > (size_t)INT_MAX - pos) {
+        return -1;
+    }
+
     const uint8_t* prog = rule->prog;
     size_t klen = rule->prog_len;
     size_t k = 0;
@@ -76,7 +83,7 @@ static int match_rule(const unsigned char* word, size_t word_len, size_t pos, co
     bool check_atstart = false;
     
     int pre_ptr = (int)pos - 1;
-    int post_ptr = (int)pos + strlen(rule->match_str);
+    int post_ptr = (int)(pos + match_len);
     
     int points = 1;
     
@@ -172,7 +179,7 @@ static int match_rule(const unsigned char* word, size_t word_len, size_t pos, co
         }
     }
     
-    if (check_atstart && pre_ptr >= 0 && word[pre_ptr] != ' ' && word[pre_ptr] != '\0') {
+    if (check_atstart && pre_ptr >= 0 && word[pre_ptr] != ' ' && word[pre_ptr] != '\0' && word[pre_ptr] != '-') {
         return -1; // Failed RULE_PRE_ATSTART
     }
     
@@ -180,15 +187,25 @@ static int match_rule(const unsigned char* word, size_t word_len, size_t pos, co
 }
 
 espure_err_t espure_text_to_phonemes(const char* lang, const char* text, char* phonemes_out, size_t out_size) {
-    if (!text || !phonemes_out || out_size == 0) return ESPURE_ERR_INVALID_ARG;
-    if (strncmp(lang, "de", 2) != 0) return ESPURE_ERR_NOT_SUPPORTED;
-    
+    if (!phonemes_out || out_size == 0) {
+        return ESPURE_ERR_INVALID_ARG;
+    }
     phonemes_out[0] = '\0';
+    if (!lang || !text) {
+        return ESPURE_ERR_INVALID_ARG;
+    }
+    if (strcmp(lang, "de-DE") != 0) {
+        return ESPURE_ERR_NOT_SUPPORTED;
+    }
     
     // Lowercase ASCII and handle UTF-8 umlauts
     unsigned char lower[256];
     size_t text_len = strlen(text);
-    if (text_len > sizeof(lower) - 1) text_len = sizeof(lower) - 1;
+    if (text_len > sizeof(lower) - 1) {
+        ESP_LOGE("RULES", "Input exceeds the maximum supported length (%zu bytes)",
+                 sizeof(lower) - 1);
+        return ESPURE_ERR_INVALID_SIZE;
+    }
     
     size_t j = 0;
     for (size_t i = 0; i < text_len; i++) {
@@ -214,18 +231,22 @@ espure_err_t espure_text_to_phonemes(const char* lang, const char* text, char* p
     size_t out_idx = 0;
     size_t i = 0;
     
-    while (i < text_len && out_idx < out_size - 1) {
+    while (i < text_len) {
         unsigned char c = lower[i];
         
         // Native Glottal Stop Injection at Morpheme Boundaries
         if (c == '-') {
             if (i + 1 < text_len && is_vowel(lower[i+1])) {
-                const char* glottal = "_!'";
+                const char* glottal = ",_!";
                 size_t gl_len = 3;
-                if (out_idx + gl_len < out_size) {
-                    memcpy(phonemes_out + out_idx, glottal, gl_len);
-                    out_idx += gl_len;
+                if (gl_len >= out_size - out_idx) {
+                    ESP_LOGE("RULES", "Output buffer too small for glottal boundary");
+                    phonemes_out[0] = '\0';
+                    return ESPURE_ERR_BUFFER_TOO_SMALL;
                 }
+                memcpy(phonemes_out + out_idx, glottal, gl_len);
+                out_idx += gl_len;
+                phonemes_out[out_idx] = '\0';
             }
             i++;
             continue;
@@ -279,21 +300,32 @@ espure_err_t espure_text_to_phonemes(const char* lang, const char* text, char* p
         
         if (best_rule && best_points >= 0) {
             ESP_LOGD("RULES", "MATCH: '%s' -> '%s' (pts: %d)", best_rule->match_str, best_rule->phonemes, best_points);
-            size_t ph_len = strlen(best_rule->phonemes);
-            if (out_idx + ph_len < out_size) {
-                memcpy(phonemes_out + out_idx, best_rule->phonemes, ph_len + 1);
-                out_idx += ph_len;
+            if (strstr(best_rule->phonemes, "_^_") != NULL) {
+                ESP_LOGE("RULES", "Language-switch rule is unsupported in this build");
+                phonemes_out[0] = '\0';
+                return ESPURE_ERR_NOT_SUPPORTED;
             }
+            size_t ph_len = strlen(best_rule->phonemes);
+            if (ph_len >= out_size - out_idx) {
+                ESP_LOGE("RULES", "Output buffer too small while applying rule '%s'",
+                         best_rule->match_str);
+                phonemes_out[0] = '\0';
+                return ESPURE_ERR_BUFFER_TOO_SMALL;
+            }
+            memcpy(phonemes_out + out_idx, best_rule->phonemes, ph_len + 1);
+            out_idx += ph_len;
             i += strlen(best_rule->match_str);
         } else {
             // Unmatched character, skip or append verbatim
-            if (out_idx + 1 < out_size) {
-                phonemes_out[out_idx++] = lower[i];
-                phonemes_out[out_idx] = '\0';
+            if (out_idx + 1 >= out_size) {
+                ESP_LOGE("RULES", "Output buffer too small for unmatched input");
+                phonemes_out[0] = '\0';
+                return ESPURE_ERR_BUFFER_TOO_SMALL;
             }
+            phonemes_out[out_idx++] = lower[i];
+            phonemes_out[out_idx] = '\0';
             i++;
         }
     }
     return ESP_OK;
 }
-

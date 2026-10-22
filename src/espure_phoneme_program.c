@@ -95,7 +95,7 @@ static void build_eval_context(program_context_t* ctx, size_t i, eval_context_t*
                      (ctx->plist[i + 1].newword & PHLIST_START_OF_WORD);
     
     /* Find vowels in word */
-    int vowel_indices[8];
+    size_t vowel_indices[8];
     int num_vowels = 0;
     for (size_t j = word_start; j < word_end && num_vowels < 8; j++) {
         if (is_vowel_type(ctx->plist[j].ph->type)) {
@@ -105,7 +105,7 @@ static void build_eval_context(program_context_t* ctx, size_t i, eval_context_t*
     
     /* Check vowel positions */
     for (int v = 0; v < num_vowels; v++) {
-        if (vowel_indices[v] == (int)i) {
+        if (vowel_indices[v] == i) {
             ectx->first_vowel = (v == 0);
             ectx->second_vowel = (v == 1);
             ectx->final_vowel = (v == num_vowels - 1);

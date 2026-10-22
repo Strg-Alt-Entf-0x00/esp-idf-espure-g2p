@@ -1,11 +1,11 @@
 /**
  * @file espure.h
- * @brief espure - espeak-ng G2P Engine for ESP32-P4
+ * @brief ESPure - Native Embedded G2P Engine for ESP32-P4 / RISC-V
  * 
- * Pure C reimplementation of espeak-ng's grapheme-to-phoneme (G2P) engine,
+ * High-performance, clean-room G2P (grapheme-to-phoneme) engine for embedded systems,
  * optimized for ESP32-P4 Rev 1.3 with hardware acceleration support.
  * 
- * @copyright GPL-3.0-or-later (derived from espeak-ng)
+ * @license Unlicensed / Permissive Open Source (100% Native Architecture)
  * @version 1.0.0
  */
 
@@ -33,7 +33,7 @@ typedef enum {
     ESPURE_ERR_NO_MEM,          /**< Out of memory */
     ESPURE_ERR_NOT_FOUND,       /**< Language/resource not found */
     ESPURE_ERR_BUFFER_TOO_SMALL,/**< Output buffer too small */
-    ESPURE_ERR_INVALID_LANG,    /**< Invalid language code */
+    ESPURE_ERR_INVALID_LANG,    /**< Invalid locale identifier */
     ESPURE_ERR_INIT_FAILED,     /**< Initialization failed */
     ESPURE_ERR_NOT_INITIALIZED, /**< Handle not initialized */
     ESPURE_ERR_INVALID_SIZE,    /**< Invalid size or length */
@@ -47,9 +47,9 @@ typedef struct espure_handle_s* espure_handle_t;
  * @brief Configuration structure for espure initialization
  */
 typedef struct {
-    bool use_psram;              /**< Store language data in PSRAM */
+    bool use_psram;              /**< Store locale data in PSRAM */
     bool enable_hwaccel;         /**< Enable hardware acceleration (PIE) */
-    bool force_compat;           /**< Force espeak-ng byte-for-byte compatibility */
+    bool force_compat;           /**< Force strict legacy compatibility mode */
     uint16_t dict_cache_size;    /**< Dictionary cache size (entries) */
     uint16_t max_word_length;    /**< Maximum word length (bytes, UTF-8) */
 } espure_config_t;
@@ -66,11 +66,16 @@ typedef struct {
 }
 
 /**
- * @brief Output format selection
+ * @brief Text rendering format for the current string-output APIs
+ *
+ * These formats render phonemization results as strings; consumers must not
+ * treat either rendering as the final structured machine-readable contract.
+ * The project-level pronunciation target and structured API direction are
+ * documented in the repository README.
  */
 typedef enum {
     ESPURE_FORMAT_IPA,          /**< Unicode IPA with stress marks */
-    ESPURE_FORMAT_KIRSHENBAUM,  /**< ASCII Kirshenbaum (espeak -x) */
+    ESPURE_FORMAT_KIRSHENBAUM,  /**< ASCII Kirshenbaum representation */
 } espure_format_t;
 
 /**
@@ -81,6 +86,7 @@ typedef struct {
     const char* separator;       /**< Phoneme separator (NULL = none) */
     const char* tie;             /**< Tie character for multi-char phonemes */
     int8_t tonic_stress;         /**< Force tonic stress level (-1 = auto) */
+    bool rules_only;             /**< Bypass dictionary, evaluate morphology + rules + phonology */
 } espure_options_t;
 
 /**
@@ -91,6 +97,7 @@ typedef struct {
     .separator = NULL, \
     .tie = NULL, \
     .tonic_stress = -1, \
+    .rules_only = false, \
 }
 
 /**
@@ -106,32 +113,85 @@ typedef struct {
 } espure_stats_t;
 
 /* ========================================================================
+ * Stage 6: Structured Phoneme Stream Types
+ * ======================================================================== */
+
+/**
+ * @brief Stress level of a discrete phonetic segment.
+ */
+typedef enum {
+    ESPURE_STRESS_NONE = 0,
+    ESPURE_STRESS_PRIMARY = 1,
+    ESPURE_STRESS_SECONDARY = 2,
+} espure_stress_t;
+
+/**
+ * @brief Structural boundary following a discrete segment.
+ */
+typedef enum {
+    ESPURE_BOUNDARY_NONE = 0,
+    ESPURE_BOUNDARY_SYLLABLE = 1,   /**< Syllable boundary (.) */
+    ESPURE_BOUNDARY_MORPHEME = 2,   /**< Morpheme boundary (-) */
+    ESPURE_BOUNDARY_WORD = 3,       /**< Word boundary (space) */
+    ESPURE_BOUNDARY_PAUSE = 4,      /**< Punctuation / pause */
+} espure_boundary_t;
+
+/**
+ * @brief Discrete phonetic segment with linguistic annotations.
+ */
+typedef struct {
+    uint8_t segment_id;             /**< Stable, language-independent segment enum */
+    uint8_t stress : 2;             /**< Stress marker (espure_stress_t) */
+    uint8_t boundary : 3;           /**< Trailing boundary (espure_boundary_t) */
+    uint8_t length_modifier : 2;    /**< 0=Normal, 1=Half-long, 2=Long (:) */
+    uint8_t reserved : 1;
+} espure_segment_t;
+
+/**
+ * @brief Complete structured pronunciation stream.
+ */
+typedef struct {
+    uint16_t version;               /**< API version (0x0100 for v1.0) */
+    uint16_t segment_count;         /**< Number of segments in stream */
+    const espure_segment_t *segments;/**< Pointer to continuous segment array */
+} espure_stream_t;
+
+/**
+ * @brief Discrete dictionary entry (word -> raw phonemes).
+ */
+typedef struct {
+    const char* word;
+    const char* phonemes;
+    uint32_t flags;
+} espure_dict_entry_t;
+
+/* ========================================================================
  * Core API
  * ======================================================================== */
 
 /**
- * @brief Initialize a G2P translator for a specific language
+ * @brief Initialize a G2P translator for a specific locale
  * 
- * @param[in]  lang   Language code (e.g., "en", "es", "fr", "pt-br")
+ * @param[in]  locale Exact BCP 47 locale identifier (e.g., "de-DE" or "en-GB"); aliases are not accepted
  * @param[in]  config Configuration (NULL = default)
  * @param[out] handle Output handle
  * 
  * @return ESPURE_OK on success, error code otherwise
  * 
  * @note Thread-safe: Multiple handles can coexist
- * @note Language data loaded from embedded flash/PSRAM
+ * @note Locale data loaded from embedded flash/PSRAM
  * 
  * Example:
  * @code
  * espure_handle_t g2p;
  * espure_config_t config = ESPURE_CONFIG_DEFAULT();
- * if (espure_init("en", &config, &g2p) == ESPURE_OK) {
+ * if (espure_init("en-GB", &config, &g2p) == ESPURE_OK) {
  *     // Use g2p...
  *     espure_deinit(g2p);
  * }
  * @endcode
  */
-espure_err_t espure_init(const char* lang, const espure_config_t* config, 
+espure_err_t espure_init(const char* locale, const espure_config_t* config,
                          espure_handle_t* handle);
 
 /**
@@ -183,7 +243,28 @@ espure_err_t espure_phonemize_ex(espure_handle_t handle, const char* text,
                                  const espure_options_t* options);
 
 /**
- * @brief Render raw phoneme string (espeak mnemonics) to IPA/Kirshenbaum
+ * @brief Convert text to a structured pronunciation stream (Stage 6)
+ * 
+ * Populates caller-provided segment buffer with numeric phonetic segment IDs
+ * and prosodic annotations. Fast path with zero heap allocations, designed
+ * for embedded TTS acoustic models and formant synthesizers.
+ * 
+ * @param[in]  handle       G2P handle from espure_init()
+ * @param[in]  text         Input text (UTF-8)
+ * @param[out] seg_buf      Buffer to receive discrete phonetic segments
+ * @param[in]  max_segments Capacity of seg_buf
+ * @param[out] out_stream   Stream header describing populated segments
+ * 
+ * @return ESPURE_OK on success, error code otherwise
+ */
+espure_err_t espure_phonemize_stream(espure_handle_t handle,
+                                     const char* text,
+                                     espure_segment_t* seg_buf,
+                                     size_t max_segments,
+                                     espure_stream_t* out_stream);
+
+/**
+ * @brief Render raw phoneme string (phonetic mnemonics) to IPA/Kirshenbaum
  * 
  * @param[in]  handle   G2P handle
  * @param[in]  phonemes Raw phoneme string (e.g., "h@l'oU w'3:ld")
@@ -199,6 +280,19 @@ espure_err_t espure_render(espure_handle_t handle, const char* phonemes,
                            char* output, size_t out_size, bool ipa);
 
 /**
+ * @brief Split a compound word into morphemes using the morphological trie
+ * 
+ * @param[in]  lang        BCP 47 language code (e.g., "de-DE")
+ * @param[in]  word        Input word (UTF-8)
+ * @param[out] out_buffer  Buffer to receive hyphen-separated morphemes
+ * @param[in]  max_len     Capacity of out_buffer
+ * 
+ * @return true if decomposed into multiple morphemes, false if monomorphemic
+ */
+bool espure_morph_split(const char* lang, const char* word,
+                        char* out_buffer, size_t max_len);
+
+/**
  * @brief Deinitialize and free resources
  * 
  * @param[in] handle G2P handle to destroy
@@ -207,27 +301,39 @@ espure_err_t espure_render(espure_handle_t handle, const char* phonemes,
  */
 void espure_deinit(espure_handle_t handle);
 
+/**
+ * @brief Access raw dictionary entries for analysis and verification
+ * 
+ * @param[in]  handle       G2P handle
+ * @param[out] out_entries  Pointer to array of dictionary entries
+ * @param[out] out_count    Number of entries
+ * @return ESPURE_OK on success
+ */
+espure_err_t espure_get_dictionary(espure_handle_t handle,
+                                   const espure_dict_entry_t** out_entries,
+                                   size_t* out_count);
+
 /* ========================================================================
  * Utility Functions
  * ======================================================================== */
 
 /**
- * @brief Get supported language list
+ * @brief Get supported locale list
  * 
- * @param[out] count Number of languages returned
- * @return Array of language codes (NULL-terminated strings)
+ * @param[out] count Number of locales returned
+ * @return Array of BCP 47 locale identifiers (NULL-terminated strings)
  * 
  * @note Returned array is static, do not free()
  */
-const char** espure_get_languages(size_t* count);
+const char** espure_get_locales(size_t* count);
 
 /**
- * @brief Check if a language is available
+ * @brief Check if a locale is available
  * 
- * @param[in] lang Language code
- * @return true if language is supported and data is embedded
+ * @param[in] locale Exact BCP 47 locale identifier
+ * @return true if the locale is supported and data is embedded
  */
-bool espure_lang_available(const char* lang);
+bool espure_locale_available(const char* locale);
 
 /**
  * @brief Get error string for error code

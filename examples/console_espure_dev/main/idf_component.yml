@@ -1,0 +1,4 @@
+dependencies:
+  Strg-Alt-Entf-0x00/esp-uart-filebridge:
+    git: https://github.com/Strg-Alt-Entf-0x00/esp-idf-uart-filebridge.git
+    override_path: "../../../../esp-idf-uart-filebridge"

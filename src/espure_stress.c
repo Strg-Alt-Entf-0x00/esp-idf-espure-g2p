@@ -8,14 +8,14 @@
 #define STRESS_IS_DIMINISHED 0
 #define STRESS_IS_NOT_STRESSED -1
 
-void espure_assign_word_stress(const espure_translator_t* tr, espure_phlist_entry_t* plist, size_t plist_len) {
-    if (plist_len == 0 || !tr) return;
+void espure_assign_word_stress(espure_phlist_entry_t* plist, size_t plist_len) {
+    if (plist_len == 0 || !plist) return;
 
-    int vowel_indices[32]; 
-    int vowel_stress[32];
+    size_t vowel_indices[32];
+    int vowel_stress[33];
     int vowel_count = 1;   
     
-    for (int i = 0; i < 32; i++) {
+    for (size_t i = 0; i < sizeof(vowel_stress) / sizeof(vowel_stress[0]); i++) {
         vowel_stress[i] = STRESS_IS_NOT_STRESSED;
     }
     
@@ -77,7 +77,7 @@ void espure_assign_word_stress(const espure_translator_t* tr, espure_phlist_entr
             vowel_stress[v] = v_stress;
         }
         
-        int plist_idx = vowel_indices[v];
+        size_t plist_idx = vowel_indices[v];
         if (v_stress == STRESS_IS_PRIMARY) {
             plist[plist_idx].stresslevel = STRESS_PRIMARY;
         } else if (v_stress == STRESS_IS_SECONDARY) {

@@ -1,38 +1,61 @@
-﻿# ESP-IDF
+﻿# ==============================================================================
+# ESP-IDF Build Artifacts
+# ==============================================================================
 build/
-sdkconfig
-sdkconfig.old
+**/build/
 dependencies.lock
+**/dependencies.lock
 managed_components/
-.archive/
+**/managed_components/
+sdkconfig
+**/sdkconfig
+sdkconfig.old
+**/sdkconfig.old
 
+# ==============================================================================
 # Python
-__pycache__/
+# ==============================================================================
 *.py[cod]
 *$py.class
-.env
+__pycache__/
+**/__pycache__/
+.pytest_cache/
+.venv/
 venv/
 env/
 ENV/
-.pytest_cache/
 
-# VS Code
-.vscode/c_cpp_properties.json
-.vscode/.browse.c_cpp.db*
-.vscode/compile_commands.json
+# ==============================================================================
+# IDE and Editor
+# ==============================================================================
+*.swp
+*.swo
+.cache/
+.clangd
+.vscode/
 
-# OS generated files
+
+# ==============================================================================
+# OS Generated Files
+# ==============================================================================
+# macOS
 .DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
+
+# Windows
 ehthumbs.db
 Thumbs.db
 
-# Private Docs
+# ==============================================================================
+# Reference and Archive Code
+# ==============================================================================
+.archive/
 .docs/
-
-s c r a t c h / 
+.old_code/
+.reference_codes/
+tools_py/autonomous_dev/ 
  
  

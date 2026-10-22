@@ -2,18 +2,19 @@
  * @file espure_dictionary.c
  * @brief Dictionary lookup using binary search
  * 
- * Port of espeak-ng dictionary system for ESP32-P4 embedded:
- * - Binary search instead of hash-table (736 KB â†’ 184 KB memory)
+ * Native dictionary lookup system for ESP32-P4 embedded:
+ * - Binary search instead of hash-table (736 KB -> 184 KB memory)
  * - Sorted dictionary arrays in FLASH
  * - Multi-language support via Kconfig
  * 
- * Performance: O(log n) ~18 Î¼s (negligible for 100 ms/phoneme TTS)
- * Decision: Agent recommends binary search (87% confidence)
+ * Performance: O(log n) ~18 µs (deterministic, zero heap allocation)
  */
 
 #include "espure_internal.h"
 #include "espure_phoneme_program.h"
 #include "espure_morph.h"
+#include "espure_phonology.h"
+#include "espure_normalize.h"
 #include <string.h>
 #include <esp_log.h>
 
@@ -83,15 +84,107 @@ size_t espure_dictionary_size(const espure_dictionary_t* dict) {
  * Dictionary Lookup (Binary Search)
  * ======================================================================== */
 
-/**
- * @brief Binary search lookup (O(log n) - ~13 comparisons for 6,641 entries)
- * 
- * Performance: ~18 Î¼s @ 360 MHz (negligible for 100 ms/phoneme TTS)
- */
-// Removed compare_word, using strcmp on lowercased string instead
+static bool lowercase_german_word(const char* word, char* output, size_t output_size) {
+    size_t input_size = strlen(word);
+    if (input_size >= output_size) {
+        return false;
+    }
+
+    size_t out = 0;
+    for (size_t in = 0; in < input_size; in++) {
+        unsigned char c = (unsigned char)word[in];
+        if (c >= 'A' && c <= 'Z') {
+            output[out++] = (char)(c + ('a' - 'A'));
+        } else if (c == 0xC3 && in + 1 < input_size) {
+            /* Lowercase uppercase Latin-1 letters encoded as two-byte UTF-8. */
+            unsigned char next = (unsigned char)word[in + 1];
+            if ((next >= 0x80 && next <= 0x96) ||
+                (next >= 0x98 && next <= 0x9E)) {
+                output[out++] = (char)c;
+                output[out++] = (char)(next + 0x20);
+                in++;
+            } else {
+                output[out++] = (char)c;
+            }
+        } else if (c == 0xE1 && in + 2 < input_size &&
+                   (unsigned char)word[in + 1] == 0xBA &&
+                   (unsigned char)word[in + 2] == 0x9E) {
+            output[out++] = (char)0xC3;
+            output[out++] = (char)0x9F;
+            in += 2;
+        } else {
+            output[out++] = (char)c;
+        }
+    }
+
+    output[out] = '\0';
+    return true;
+}
+
+#ifndef CONFIG_ESPURE_DICT_HUFFMAN_TRIE
+static espure_err_t lookup_dictionary_entries(espure_dictionary_t* dict,
+                                              const char* word,
+                                              const char* lower_word,
+                                              char* phonemes_out,
+                                              size_t out_size,
+                                              uint32_t* flags_out) {
+    size_t left = 0;
+    size_t right = dict->count;
+
+    while (left < right) {
+        size_t mid = left + (right - left) / 2;
+        char entry_lower[128];
+        if (!lowercase_german_word(dict->entries[mid].word,
+                                   entry_lower, sizeof(entry_lower))) {
+            return ESPURE_ERR_INVALID_SIZE;
+        }
+        int cmp = strcmp(entry_lower, lower_word);
+
+        if (cmp < 0) {
+            left = mid + 1;
+        } else {
+            right = mid;
+        }
+    }
+
+    const espure_dict_entry_t* matched_entry = NULL;
+    for (size_t i = left; i < dict->count; i++) {
+        char entry_lower[128];
+        if (!lowercase_german_word(dict->entries[i].word,
+                                   entry_lower, sizeof(entry_lower))) {
+            return ESPURE_ERR_INVALID_SIZE;
+        }
+        if (strcmp(entry_lower, lower_word) != 0) {
+            break;
+        }
+        if (strcmp(dict->entries[i].word, word) == 0) {
+            matched_entry = &dict->entries[i];
+            break;
+        }
+        if (strcmp(dict->entries[i].word, lower_word) == 0) {
+            matched_entry = &dict->entries[i];
+        }
+    }
+
+    if (matched_entry) {
+        size_t phoneme_size = strlen(matched_entry->phonemes);
+        if (phoneme_size >= out_size) {
+            return ESPURE_ERR_BUFFER_TOO_SMALL;
+        }
+        memcpy(phonemes_out, matched_entry->phonemes, phoneme_size + 1);
+        if (flags_out) {
+            *flags_out = matched_entry->flags;
+        }
+        ESPURE_DEBUG("Dictionary hit: %s -> %s", word, phonemes_out);
+        return ESPURE_OK;
+    }
+
+    return ESPURE_ERR_NOT_FOUND;
+}
+#endif
 
 /**
- * @brief Lookup word in sorted dictionary array
+ * @brief Lookup a word by exact spelling, then its lowercase form
  */
 espure_err_t espure_dictionary_lookup(espure_dictionary_t* dict,
                                      const char* word,
@@ -101,68 +194,31 @@ espure_err_t espure_dictionary_lookup(espure_dictionary_t* dict,
     if (!dict || !word || !phonemes_out || out_size == 0) {
         return ESPURE_ERR_INVALID_ARG;
     }
-    
-    // Lowercase the input word (including German UTF-8 umlauts) once before binary search
+
     char lower_word[128];
-    size_t j = 0;
-    for (size_t i = 0; word[i] != '\0' && j < 127; i++) {
-        unsigned char c = (unsigned char)word[i];
-        if (c >= 'A' && c <= 'Z') {
-            lower_word[j++] = c + 32;
-        } else if (c == 0xC3 && word[i+1] != '\0') {
-            unsigned char next_c = (unsigned char)word[i+1];
-            // Ä=0x84->0xA4, Ö=0x96->0xB6, Ü=0x9C->0xBC
-            if (next_c == 0x84 || next_c == 0x96 || next_c == 0x9C) {
-                lower_word[j++] = 0xC3;
-                lower_word[j++] = next_c + 0x20;
-                i++; // skip next byte
-            } else {
-                lower_word[j++] = c;
-            }
-        } else {
-            lower_word[j++] = c;
-        }
+    if (!lowercase_german_word(word, lower_word, sizeof(lower_word))) {
+        return ESPURE_ERR_INVALID_SIZE;
     }
-    lower_word[j] = '\0';
-    
+
 #ifdef CONFIG_ESPURE_DICT_HUFFMAN_TRIE
     extern espure_err_t espure_dict_compressed_lookup(const char* word, char* out_phonemes, size_t out_size);
-    if (flags_out) *flags_out = 0; // Flags not supported in compressed mode yet
+    if (flags_out) {
+        *flags_out = 0;
+    }
+
+    espure_err_t err = espure_dict_compressed_lookup(word, phonemes_out, out_size);
+    if (err != ESPURE_ERR_NOT_FOUND || strcmp(word, lower_word) == 0) {
+        return err;
+    }
     return espure_dict_compressed_lookup(lower_word, phonemes_out, out_size);
 #else
     if (!dict->entries || dict->count == 0) {
         return ESPURE_ERR_NOT_FOUND;
     }
-    
-    // Binary search
-    size_t left = 0;
-    size_t right = dict->count;
-    
-    while (left < right) {
-        size_t mid = left + (right - left) / 2;
-        int cmp = strcmp(lower_word, dict->entries[mid].word);
-        
-        if (cmp == 0) {
-            // Found!
-            strlcpy(phonemes_out, dict->entries[mid].phonemes, out_size);
-            
-            if (flags_out) {
-                *flags_out = dict->entries[mid].flags;
-            }
-            
-            ESPURE_DEBUG("Dictionary hit: %s -> %s", word, phonemes_out);
-            return ESPURE_OK;
-        }
-        
-        if (cmp < 0) {
-            right = mid;
-        } else {
-            left = mid + 1;
-        }
-    }
-    
-    // Not found
-    return ESPURE_ERR_NOT_FOUND;
+
+    espure_err_t err = lookup_dictionary_entries(
+        dict, word, lower_word, phonemes_out, out_size, flags_out);
+    return err;
 #endif
 }
 
@@ -185,30 +241,29 @@ espure_err_t espure_dictionary_load_embedded(espure_dictionary_t* dict,
         return ESPURE_ERR_INVALID_ARG;
     }
     
-    ESP_LOGI(TAG, "Loading embedded dictionary for '%s'", lang);
+    ESP_LOGI(TAG, "Loading embedded dictionary for locale '%s'", lang);
     
-    // Load language-specific dictionary
+    // Load locale-specific dictionary
     // These are generated by tools/dict_to_binary.py and 
     // conditionally compiled via CMakeLists.txt based on Kconfig
     
-    if (strcmp(lang, "en") == 0) {
-#ifdef CONFIG_ESPURE_LANG_EN
-        // Include English dictionary data
-        extern const espure_dict_entry_t DICT_EN[];
-        extern const size_t DICT_EN_SIZE;
+    if (strcmp(lang, "en-GB") == 0) {
+#ifdef CONFIG_ESPURE_LOCALE_EN_GB
+        extern const espure_dict_entry_t DICT_EN_GB[];
+        extern const size_t DICT_EN_GB_SIZE;
         
-        dict->entries = (espure_dict_entry_t*)DICT_EN;  // Point to FLASH data
-        dict->count = DICT_EN_SIZE;
+        dict->entries = (espure_dict_entry_t*)DICT_EN_GB;
+        dict->count = DICT_EN_GB_SIZE;
         
-        ESP_LOGI(TAG, "[OK] Loaded EN dictionary: %zu entries", dict->count);
+        ESP_LOGI(TAG, "[OK] Loaded en-GB pilot dictionary: %zu entries", dict->count);
         ESP_LOGI(TAG, "   Memory: %zu KB (pointer array only)", 
                  (dict->count * sizeof(espure_dict_entry_t)) / 1024);
 #else
-        ESP_LOGE(TAG, "English dictionary not compiled (enable CONFIG_ESPURE_LANG_EN)");
+        ESP_LOGE(TAG, "English pilot not compiled (enable CONFIG_ESPURE_LOCALE_EN_GB)");
         return ESPURE_ERR_NOT_FOUND;
 #endif
-    } else if (strcmp(lang, "de-DE-standard") == 0 || strcmp(lang, "de") == 0 || strcmp(lang, "de_DE") == 0) {
-#ifdef CONFIG_ESPURE_LANG_DE
+    } else if (strcmp(lang, "de-DE") == 0) {
+#ifdef CONFIG_ESPURE_LOCALE_DE_DE
     #ifdef CONFIG_ESPURE_DICT_HUFFMAN_TRIE
         // Huffman compressed dictionary mode
         // Dictionary is accessed via espure_dict_compressed_lookup() function
@@ -228,7 +283,7 @@ espure_err_t espure_dictionary_load_embedded(espure_dictionary_t* dict,
         ESP_LOGI(TAG, "[OK] Loaded DE dictionary: %zu entries", dict->count);
     #endif
 #else
-        ESP_LOGE(TAG, "German dictionary not compiled (enable CONFIG_ESPURE_LANG_DE)");
+        ESP_LOGE(TAG, "German dictionary not compiled (enable CONFIG_ESPURE_LOCALE_DE_DE)");
         return ESPURE_ERR_NOT_FOUND;
 #endif
     } else if (strcmp(lang, "fr") == 0) {
@@ -245,7 +300,7 @@ espure_err_t espure_dictionary_load_embedded(espure_dictionary_t* dict,
         return ESPURE_ERR_NOT_FOUND;
 #endif
     } else {
-        ESP_LOGW(TAG, "No embedded dictionary for language '%s'", lang);
+        ESP_LOGW(TAG, "No embedded dictionary for locale '%s'", lang);
         ESP_LOGW(TAG, "Use menuconfig to enable: Component config -> espure -> Languages");
         return ESPURE_ERR_NOT_FOUND;
     }
@@ -261,7 +316,7 @@ espure_err_t espure_dictionary_load_embedded(espure_dictionary_t* dict,
  * @brief Translator structure (per-language configuration)
  */
 struct espure_translator_s {
-    char lang[8];
+    const char* locale;
     // Core components
     espure_phoneme_table_t* phoneme_table;
     espure_dictionary_t* dictionary;
@@ -328,7 +383,7 @@ static void setup_letters(espure_translator_t* tr) {
         }
     }
     
-    // TODO Phase 3: Load language-specific letter bits
+    // TODO Phase 3: Load locale-specific letter bits
 }
 
 espure_err_t espure_translator_init(const char* lang,
@@ -352,7 +407,7 @@ espure_err_t espure_translator_init(const char* lang,
     tr->phoneme_table = phoneme_table;
     tr->dictionary = dictionary;
     tr->config = config;
-    if (lang) { strlcpy(tr->lang, lang, sizeof(tr->lang)); } else { strlcpy(tr->lang, "en", sizeof(tr->lang)); }
+    tr->locale = lang;
     tr->heap_used = sizeof(espure_translator_t);
     
     // Setup letter classification
@@ -426,15 +481,30 @@ espure_err_t espure_translator_phonemize(espure_translator_t* translator,
     if (!translator || !text || !output || out_size == 0) {
         return ESPURE_ERR_INVALID_ARG;
     }
+    output[0] = '\0';
+    
+    // Stage 1: Text Normalization (expand numbers, abbreviations, symbols, strip punctuation)
+    char* norm_text = espure_malloc(1024, translator->config);
+    const char* text_to_split = text;
+    if (norm_text) {
+        if (espure_normalize_text(translator->locale, text, norm_text, 1024) == ESPURE_OK) {
+            text_to_split = norm_text;
+        }
+    }
     
     // Allocate word buffer on heap to avoid stack overflow
     // Max 32 words, 128 bytes each = 4KB (too much for stack!)
     char (*words)[128] = espure_malloc(32 * 128, translator->config);
     if (!words) {
+        if (norm_text) espure_free(norm_text);
         return ESPURE_ERR_NO_MEM;
     }
     
-    size_t word_count = split_words(text, words, 32);
+    size_t word_count = split_words(text_to_split, words, 32);
+    if (norm_text) {
+        espure_free(norm_text);
+        norm_text = NULL;
+    }
     
     if (word_count == 0) {
         output[0] = '\0';
@@ -455,28 +525,41 @@ espure_err_t espure_translator_phonemize(espure_translator_t* translator,
         char phonemes[256];
         
         uint32_t entry_flags = 0;
-        // Try dictionary lookup
-        espure_err_t err = espure_dictionary_lookup(
-            translator->dictionary,
-            words[i],
-            phonemes,
-            sizeof(phonemes),
-            &entry_flags
-        );
+        espure_err_t err = ESPURE_ERR_NOT_FOUND;
+        // Try dictionary lookup unless rules_only is requested
+        if (!options || !options->rules_only) {
+            err = espure_dictionary_lookup(
+                translator->dictionary,
+                words[i],
+                phonemes,
+                sizeof(phonemes),
+                &entry_flags
+            );
+            if (err != ESPURE_OK && err != ESPURE_ERR_NOT_FOUND) {
+                ESP_LOGE(TAG, "Dictionary lookup failed for '%s': %d", words[i], err);
+                output[0] = '\0';
+                espure_free(result);
+                espure_free(words);
+                return err;
+            }
+        }
         
+        bool from_dict = false;
         if (err == ESPURE_OK && phonemes[0] != '$') {
             // Found in dictionary
+            from_dict = true;
             ESPURE_DEBUG("Dictionary hit: %s -> %s", words[i], phonemes);
         } else {
             // Not found - try rule matching with morphological splitting
             bool was_morphed = false;
             char morphed_word[128];
-            if (espure_morph_split(words[i], morphed_word, sizeof(morphed_word))) {
+            if (espure_morph_split(translator->locale, words[i],
+                                   morphed_word, sizeof(morphed_word))) {
                 ESPURE_DEBUG("Morphological split: %s -> %s", words[i], morphed_word);
-                err = espure_text_to_phonemes(translator->lang, morphed_word, phonemes, sizeof(phonemes));
+                err = espure_text_to_phonemes(translator->locale, morphed_word, phonemes, sizeof(phonemes));
                 was_morphed = true;
             } else {
-                err = espure_text_to_phonemes(translator->lang, words[i], phonemes, sizeof(phonemes));
+                err = espure_text_to_phonemes(translator->locale, words[i], phonemes, sizeof(phonemes));
             }
             
             if (err == ESPURE_OK && phonemes[0] != '$') {
@@ -496,6 +579,14 @@ espure_err_t espure_translator_phonemize(espure_translator_t* translator,
                     }
                 }
             } else {
+                if (err != ESPURE_OK) {
+                    ESP_LOGE(TAG, "Rule phonemization failed for '%s': %d",
+                             words[i], err);
+                    output[0] = '\0';
+                    espure_free(result);
+                    espure_free(words);
+                    return err;
+                }
                 // Rule matching failed - fallback to copying input
                 strlcpy(phonemes, words[i], sizeof(phonemes));
                 
@@ -515,9 +606,19 @@ espure_err_t espure_translator_phonemize(espure_translator_t* translator,
         
         // Parse concatenated string ("h@loU" or rule match "fVk") and add spaces ("h @ l oU")
         // We do this for BOTH dictionary and rule matches so they can be rendered to IPA correctly
-        const espure_phoneme_t* parsed_ph[32];
+        const espure_phoneme_t* parsed_ph[sizeof(phonemes)];
         size_t num_parsed = 0;
-        if (espure_parse_phoneme_string(translator->phoneme_table, phonemes, parsed_ph, 32, &num_parsed) == ESPURE_OK && num_parsed > 0) {
+        err = espure_parse_phoneme_string(
+            translator->phoneme_table, phonemes, parsed_ph,
+            sizeof(parsed_ph) / sizeof(parsed_ph[0]), &num_parsed);
+        if (err != ESPURE_OK) {
+            ESP_LOGE(TAG, "Phoneme parsing failed for '%s': %d", words[i], err);
+            output[0] = '\0';
+            espure_free(result);
+            espure_free(words);
+            return err;
+        }
+        if (num_parsed > 0) {
             size_t ppos = 0;
             for (size_t p = 0; p < num_parsed; p++) {
                 if (p > 0 && ppos < sizeof(phonemes) - 1) {
@@ -554,7 +655,20 @@ espure_err_t espure_translator_phonemize(espure_translator_t* translator,
             }
         }
         
-        // NEW: Render phonemes to IPA or Kirshenbaum (Step 5)
+        // Native phonological transformations (Auslautverhärtung, coda-r, -ig spirantization, ich/ach)
+        // Post-lexical phonological rules apply to all words in accordance with universal German phonology
+        if (strlen(phonemes) > 0) {
+            err = espure_phonology_apply(translator->locale, phonemes, sizeof(phonemes));
+            if (err != ESPURE_OK) {
+                ESP_LOGE(TAG, "Phonology application failed for '%s': %d", words[i], err);
+                output[0] = '\0';
+                espure_free(result);
+                espure_free(words);
+                return err;
+            }
+        }
+        
+        // Render phonemes to IPA or Kirshenbaum
         if (strlen(phonemes) > 0) {
             char rendered_phonemes[256];
             err = espure_render_phoneme_string(
@@ -567,10 +681,15 @@ espure_err_t espure_translator_phonemize(espure_translator_t* translator,
                 options->tie
             );
             
-            if (err == ESPURE_OK && phonemes[0] != '$') {
+            if (err != ESPURE_OK) {
+                ESP_LOGE(TAG, "Render failed for '%s': %d", words[i], err);
+                output[0] = '\0';
+                espure_free(result);
+                espure_free(words);
+                return err;
+            }
+            if (phonemes[0] != '$') {
                 strlcpy(phonemes, rendered_phonemes, sizeof(phonemes));
-            } else {
-                ESP_LOGW(TAG, "Render failed for '%s': %d", words[i], err);
             }
         }
         
@@ -607,4 +726,3 @@ espure_err_t espure_translator_phonemize(espure_translator_t* translator,
     
     return ESPURE_OK;
 }
-

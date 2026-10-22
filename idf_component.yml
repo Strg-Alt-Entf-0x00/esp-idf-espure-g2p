@@ -1,2 +1,3 @@
+name: "espure"
 version: "1.0.0"
 description: "A fast, accurate, and memory-efficient G2P Engine for ESP32 and Neural TTS applications"

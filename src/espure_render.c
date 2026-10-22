@@ -3,7 +3,7 @@
  * @brief Phoneme rendering to IPA/Kirshenbaum
  * 
  * Converts phoneme mnemonics to IPA (Unicode) or ASCII Kirshenbaum format.
- * Simplified implementation with most common English phonemes.
+ * Locale-specific IPA mappings are owned by each locale data directory.
  */
 
 #include "espure_internal.h"
@@ -12,118 +12,45 @@
 
 static const char* TAG = "espure_render";
 
-/**
- * Phoneme mnemonic to IPA mapping (most common English phonemes)
- * Based on espeak-ng's IPA table
- */
 typedef struct {
     const char* mnemonic;
     const char* ipa;
 } phoneme_ipa_t;
 
-static const phoneme_ipa_t PHONEME_IPA_MAP[] = {
-    {"W", "œ"},
-    {"3", "ɜ"},
-    {"x", "x"},
-    {"Y:", "øː"},
-    {"y:", "yː"},
-    {"Y", "ʏ"},
-    {"2", "ø"},
-    {"9", "œ"},
-    {"C", "ç"},
-    {"E", "ɛ"},
-    {"O", "ɔ"},
-    {"E:", "ɛː"},
-    {"O:", "ɔː"},
-    {"2:", "øː"},
-    {"9:", "œː"},
-    {"@n", "ən"},
-    {"@st", "əst"},
-    {"@r", "ər"},
-    {"@m", "əm"},
-    {"@l", "əl"},
-    {"=o:", "oː"},
-    {"U", "ʊ"},
-    {"I", "ɪ"},
-    {"V", "ʌ"},
-    {"A:", "aː"},
-    {"u:", "uː"},
-    {"i:", "iː"},
-    {"o:", "oː"},
-    // Consonants
-    {"b", "b"},
-    {"d", "d"},
-    {"f", "f"},
-    {"g", "ɡ"},        // U+0261
-    {"h", "h"},
-    {"j", "j"},
-    {"k", "k"},
-    {"l", "l"},
-    {"m", "m"},
-    {"n", "n"},
-    {"p", "p"},
-    {"r", "ɹ"},        // U+0279
-    {"s", "s"},
-    {"t", "t"},
-    {"v", "v"},
-    {"w", "w"},
-    {"z", "z"},
-    
-    // Digraphs
-    {"T", "θ"},        // th (thin) - U+03B8
-    {"D", "ð"},        // th (this) - U+00F0
-    {"S", "ʃ"},        // sh (ship) - U+0283
-    {"Z", "ʒ"},        // s (measure) - U+0292
-    {"N", "ŋ"},        // ng (sing) - U+014B
-    {"tS", "tʃ"},      // ch (chip)
-    {"dZ", "dʒ"},      // j (jump)
-    
-    // Vowels - Short
-    {"@", "ə"},        // schwa (about) - U+0259
-    {"I", "ɪ"},        // i (bit) - U+026A
-    {"E", "ɛ"},        // e (bed) - U+025B
-    {"e", "e"},        // e (bed)
-    {"V", "ʌ"},        // u (but) - U+028C
-    {"o", "ɒ"},        // o (on) - U+0252
-    {"O", "ɔ"},        // o (off) - U+0254
-    {"U", "ʊ"},        // oo (book) - U+028A
-    {"A", "ɑ"},        // a (father) - U+0251
-    
-    // Vowels - Long
-    {"i:", "iː"},      // ee (see)
-    {"u:", "uː"},      // oo (food)
-    {"A:", "ɑː"},      // ar (far)
-    {"O:", "ɔː"},      // or (for)
-    {"3:", "ɜː"},      // ir (bird) - U+025C
-    
-    // Diphthongs
-    {"eI", "eɪ"},      // ay (say)
-    {"aI", "aɪ"},      // i (bite)
-    {"OI", "ɔɪ"},      // oy (boy)
-    {"aU", "aʊ"},      // ou (out)
-    {"@U", "əʊ"},      // o (go)
-    {"oU", "oʊ"},      // o (go - US)
-    
-    // Special
-    {"kw", "kw"},      // qu (queen)
-    {"ks", "ks"},      // x (box)
-    {"A", "a"},        // short a (German)
-    {"_!", "ʔ"},       // glottal stop
+static const phoneme_ipa_t COMMON_IPA_MAP[] = {
+    {"%", ""},
+    {",", "ˌ"},
+    {",,", "ˌ"},
+    {"_", ""},
+    {"_|", ""},
 };
-
-#define NUM_IPA_MAPPINGS (sizeof(PHONEME_IPA_MAP) / sizeof(PHONEME_IPA_MAP[0]))
 
 /**
  * Find IPA representation for a phoneme mnemonic
  */
-static const char* find_ipa(const char* mnemonic) {
-    for (size_t i = 0; i < NUM_IPA_MAPPINGS; i++) {
-        if (strcmp(PHONEME_IPA_MAP[i].mnemonic, mnemonic) == 0) {
-            return PHONEME_IPA_MAP[i].ipa;
+static const char* find_ipa(const espure_phoneme_table_t* table,
+                            const char* mnemonic) {
+    for (size_t i = 0; i < sizeof(COMMON_IPA_MAP) / sizeof(COMMON_IPA_MAP[0]); i++) {
+        if (strcmp(COMMON_IPA_MAP[i].mnemonic, mnemonic) == 0) {
+            return COMMON_IPA_MAP[i].ipa;
         }
     }
-    // Not found - return mnemonic as-is
-    return mnemonic;
+    const char* locale = espure_phoneme_table_locale(table);
+    if (locale && strcmp(locale, "en-GB") == 0) {
+#ifdef CONFIG_ESPURE_LOCALE_EN_GB
+        return espure_en_GB_ipa_lookup(mnemonic);
+#else
+        return NULL;
+#endif
+    }
+    if (locale && strcmp(locale, "de-DE") == 0) {
+#ifdef CONFIG_ESPURE_LOCALE_DE_DE
+        return espure_german_ipa_lookup(mnemonic);
+#else
+        return NULL;
+#endif
+    }
+    return NULL;
 }
 
 /**
@@ -142,8 +69,7 @@ espure_err_t espure_render_phoneme_string(const espure_phoneme_table_t* table,
     if (!table || !phonemes || !output || out_size == 0) {
         return ESPURE_ERR_INVALID_ARG;
     }
-    
-    (void)table;  // Unused for now (would be used for table lookup)
+    output[0] = '\0';
     
     // Default separator (none for IPA, space for Kirshenbaum)
     if (!separator) {
@@ -158,6 +84,7 @@ espure_err_t espure_render_phoneme_string(const espure_phoneme_table_t* table,
     char* out_ptr = output;
     size_t out_remaining = out_size;
     bool first = true;
+    const char* pending_stress = NULL;
     
     // Parse phoneme string (space-separated)
     char ph_buffer[32];
@@ -177,56 +104,103 @@ espure_err_t espure_render_phoneme_string(const espure_phoneme_table_t* table,
         
         if (i == 0) continue;  // Empty phoneme
         
-        // Add separator between phonemes
-        if (!first && separator[0]) {
-            size_t sep_len = strlen(separator);
-            if (sep_len < out_remaining) {
-                memcpy(out_ptr, separator, sep_len + 1);
-                out_ptr += sep_len;
-                out_remaining -= sep_len;
-            }
-        }
-        first = false;
-        
         // Convert to IPA or keep as Kirshenbaum
         const char* rendered;
+        const char* stress = NULL;
+        bool inline_stress = false;
+        if (strcmp(ph_buffer, "_^_") == 0) {
+            ESP_LOGE(TAG, "Language-switch phoneme is unsupported in this build");
+            output[0] = '\0';
+            return ESPURE_ERR_NOT_SUPPORTED;
+        }
         if (format == ESPURE_FORMAT_IPA) {
-            // Check for leading stress markers
-            if (ph_buffer[0] == '\'') {
-                if (ph_buffer[1] == '\'') {
-                    // Secondary stress
-                    if (out_remaining > 2) {
-                        memcpy(out_ptr, "ˌ", 2); // U+02CC
-                        out_ptr += 2;
-                        out_remaining -= 2;
-                    }
-                    rendered = find_ipa(ph_buffer + 2);
+            const char* mnemonic = ph_buffer;
+            if (strcmp(mnemonic, "'") == 0) {
+                pending_stress = "ˈ";
+                continue;
+            }
+            if (strcmp(mnemonic, "''") == 0 || strcmp(mnemonic, ",") == 0 || strcmp(mnemonic, ",,") == 0) {
+                pending_stress = "ˌ";
+                continue;
+            }
+            if (strcmp(mnemonic, "=") == 0) {
+                pending_stress = "ˈ";
+                continue;
+            }
+            if (mnemonic[0] == '\'') {
+                inline_stress = true;
+                if (mnemonic[1] == '\'') {
+                    stress = "ˌ";
+                    mnemonic += 2;
                 } else {
-                    // Primary stress
-                    if (out_remaining > 2) {
-                        memcpy(out_ptr, "ˈ", 2); // U+02C8
-                        out_ptr += 2;
-                        out_remaining -= 2;
-                    }
-                    rendered = find_ipa(ph_buffer + 1);
+                    stress = "ˈ";
+                    mnemonic++;
+                }
+            } else if (mnemonic[0] == ',') {
+                inline_stress = true;
+                if (mnemonic[1] == ',') {
+                    stress = "ˌ";
+                    mnemonic += 2;
+                } else {
+                    stress = "ˌ";
+                    mnemonic++;
                 }
             } else {
-                rendered = find_ipa(ph_buffer);
+                stress = pending_stress;
+            }
+            pending_stress = NULL;
+            rendered = find_ipa(table, mnemonic);
+            if (!rendered) {
+                if (mnemonic[0] == '%' || mnemonic[0] == '_') {
+                    rendered = find_ipa(table, mnemonic + 1);
+                }
+                if (!rendered) {
+                    output[0] = '\0';
+                    return ESPURE_ERR_NOT_FOUND;
+                }
             }
         } else {
             rendered = ph_buffer;  // Kirshenbaum = mnemonic
         }
-        
-        // Append to output
-        size_t len = strlen(rendered);
-        if (len < out_remaining) {
-            memcpy(out_ptr, rendered, len + 1);
-            out_ptr += len;
-            out_remaining -= len;
-        } else {
-            // Buffer full
-            break;
+
+        size_t separator_len = first ? 0 : strlen(separator);
+        size_t stress_len = stress ? strlen(stress) : 0;
+        size_t rendered_len = strlen(rendered);
+        if (separator_len + stress_len + rendered_len >= out_remaining) {
+            ESP_LOGE(TAG, "Output buffer too small while rendering '%s'", phonemes);
+            output[0] = '\0';
+            return ESPURE_ERR_BUFFER_TOO_SMALL;
         }
+
+        if (separator_len > 0) {
+            memcpy(out_ptr, separator, separator_len);
+            out_ptr += separator_len;
+            out_remaining -= separator_len;
+        }
+        if (stress_len > 0) {
+            memcpy(out_ptr, stress, stress_len);
+            out_ptr += stress_len;
+            out_remaining -= stress_len;
+        }
+        memcpy(out_ptr, rendered, rendered_len);
+        out_ptr += rendered_len;
+        out_remaining -= rendered_len;
+        *out_ptr = '\0';
+        first = false;
+    }
+
+    while (*p == ' ' || *p == '\t') {
+        p++;
+    }
+    if (*p) {
+        ESP_LOGE(TAG, "Output buffer too small while rendering '%s'", phonemes);
+        output[0] = '\0';
+        return ESPURE_ERR_BUFFER_TOO_SMALL;
+    }
+
+    if (pending_stress) {
+        output[0] = '\0';
+        return ESPURE_ERR_INVALID_ARG;
     }
     
     *out_ptr = '\0';

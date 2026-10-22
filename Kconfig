@@ -1,21 +1,22 @@
 menu "espure Configuration"
 
-    menu "Language Selection"
-        comment "Select languages to include in build"
-        comment "Each language adds memory to the binary"
+    menu "Locale Selection"
+        comment "Select locales to include in build"
+        comment "Each locale adds memory to the binary"
 
-        config ESPURE_LANG_DE
-            bool "German Dictionary (de_DE)"
+        config ESPURE_LOCALE_DE_DE
+            bool "German Dictionary (de-DE)"
             default y
             help
-                Include German (de_DE) dictionary and phoneme rules.
+                Include the German (Germany) locale dictionary and phoneme rules.
                 Size: ~764 KB (compressed) or ~1.5 MB (binary array)
 
-        config ESPURE_LANG_EN
-            bool "English Dictionary (en)"
+        config ESPURE_LOCALE_EN_GB
+            bool "British English Architecture Pilot (en-GB)"
             default n
             help
-                Include English dictionary and phoneme rules.
+                Include a small English pronunciation pilot. This is not full
+                English support and does not provide English fallback rules.
 
     endmenu
 

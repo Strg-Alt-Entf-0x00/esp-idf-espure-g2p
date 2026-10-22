@@ -48,11 +48,22 @@ void espure_free(void* ptr);
  */
 char* espure_strdup(const char* s, const espure_config_t* config);
 
+/**
+ * @brief Allocate memory with a requested power-of-two alignment
+ */
+void* espure_malloc_aligned(size_t size, size_t alignment,
+                            const espure_config_t* config);
+
+/**
+ * @brief Log current heap statistics when debug logging is enabled
+ */
+void espure_print_heap_info(void);
+
 /* ========================================================================
  * Phoneme Table (espure_phoneme.c)
  * ======================================================================== */
 
-/* Phoneme types (from espeak-ng phoneme.h) */
+/* Phoneme classification types */
 #define ESPURE_PHONEME_INVALID    0
 #define ESPURE_PHONEME_PAUSE      1
 #define ESPURE_PHONEME_STRESS     2
@@ -64,6 +75,7 @@ char* espure_strdup(const char* s, const espure_config_t* config);
 #define ESPURE_PHONEME_VFRICATIVE 8
 #define ESPURE_PHONEME_NASAL      9
 #define ESPURE_PHONEME_VIRTUAL    10
+#define ESPURE_PHONEME_AFFRICATE  11
 
 /* Phoneme flags */
 #define ESPURE_PHONEME_FLAG_UNSTRESSED   0x0001
@@ -93,6 +105,11 @@ espure_err_t espure_phoneme_table_init(const char* lang,
 void espure_phoneme_table_deinit(espure_phoneme_table_t* table);
 
 size_t espure_phoneme_table_size(const espure_phoneme_table_t* table);
+size_t espure_phoneme_table_count(const espure_phoneme_table_t* table);
+const char* espure_phoneme_table_locale(const espure_phoneme_table_t* table);
+
+const char* espure_german_ipa_lookup(const char* mnemonic);
+const char* espure_en_GB_ipa_lookup(const char* mnemonic);
 
 /**
  * @brief Look up phoneme by mnemonic
@@ -208,17 +225,10 @@ typedef struct {
     uint32_t flags;         // Dictionary flags
 } espure_dict_entry_embedded_t;
 
-/**
- * @brief Runtime dictionary entry (pointer-based, FLASH references)
- */
-typedef struct {
-    const char* word;       // Pointer to word string in FLASH
-    const char* phonemes;   // Pointer to phoneme string in FLASH
-    uint32_t flags;         // Entry flags
-} espure_dict_entry_t;
+/* espure_dict_entry_t is declared in espure.h */
 
 /**
- * @brief Dictionary structure (Binary Array + Binary Search)
+ * @brief Dictionary structure (case-normalized sorted array)
  * 
  * MEMORY OPTIMIZATION: Binary array instead of hash-table
  * - Hash-table: 736 KB for 6,641 entries (DOESN'T FIT in 576 KB DRAM!)
@@ -240,14 +250,20 @@ void espure_dictionary_deinit(espure_dictionary_t* dict);
 size_t espure_dictionary_size(const espure_dictionary_t* dict);
 
 /**
- * @brief Load embedded dictionary data for a language
+ * @brief Load embedded dictionary data for a locale
  * 
  * @param dict Dictionary instance
- * @param lang Language code ("en", "de", etc.)
+ * @param lang BCP 47 locale identifier ("de-DE", "en-GB", etc.)
  * @return ESPURE_OK on success
  */
 espure_err_t espure_dictionary_load_embedded(espure_dictionary_t* dict,
                                             const char* lang);
+
+espure_err_t espure_dictionary_lookup(espure_dictionary_t* dict,
+                                      const char* word,
+                                      char* phonemes_out,
+                                      size_t out_size,
+                                      uint32_t* flags_out);
 
 /* ========================================================================
  * Binary Dictionary Loader (espure_dict_binary.c)

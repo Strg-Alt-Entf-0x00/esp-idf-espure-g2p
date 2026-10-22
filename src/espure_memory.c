@@ -4,7 +4,7 @@
  * 
  * Smart memory allocation with PSRAM/DRAM placement strategy:
  * - Hot path data → DRAM (low latency)
- * - Large static data → PSRAM (dictionary, phoneme tables)
+ * - Large runtime allocations → PSRAM when enabled
  * - Cache-aligned allocation for DMA
  */
 
@@ -12,10 +12,6 @@
 #include <string.h>
 #include <esp_heap_caps.h>
 #include <esp_log.h>
-
-#ifdef CONFIG_ESPURE_USE_PSRAM
-#include <esp_psram.h>
-#endif
 
 static const char* TAG = "espure_mem";
 
@@ -26,36 +22,24 @@ static const char* TAG = "espure_mem";
  */
 
 #define PSRAM_THRESHOLD 1024  /* Allocations >= 1KB go to PSRAM if enabled */
+#define INTERNAL_CAPS (MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)
+
+static bool prefers_spiram(size_t size, const espure_config_t* config) {
+    return config && config->use_psram && size >= PSRAM_THRESHOLD;
+}
 
 void* espure_malloc(size_t size, const espure_config_t* config) {
     if (size == 0) {
         return NULL;
     }
-    
-    uint32_t caps = MALLOC_CAP_8BIT;
-    
-#ifdef CONFIG_ESPURE_USE_PSRAM
-    if (config && config->use_psram && size >= PSRAM_THRESHOLD) {
-        /* Try PSRAM first for large allocations */
-        caps |= MALLOC_CAP_SPIRAM;
-        void* ptr = heap_caps_malloc(size, caps);
-        if (ptr) {
-            return ptr;
-        }
-        
-        /* Fallback to DRAM if PSRAM failed */
-        ESP_LOGW(TAG, "PSRAM allocation failed (%zu bytes), falling back to DRAM", size);
-        caps = MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT;
-    } else {
-        /* Small allocations always go to DRAM for low latency */
-        caps = MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT;
-    }
-#else
-    (void)config;
-    caps = MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT;
-#endif
-    
+
+    bool use_spiram = prefers_spiram(size, config);
+    uint32_t caps = use_spiram ? (MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT) : INTERNAL_CAPS;
     void* ptr = heap_caps_malloc(size, caps);
+    if (!ptr && use_spiram) {
+        ESP_LOGW(TAG, "PSRAM allocation failed (%zu bytes), falling back to DRAM", size);
+        ptr = heap_caps_malloc(size, INTERNAL_CAPS);
+    }
     if (!ptr) {
         ESP_LOGE(TAG, "Memory allocation failed: %zu bytes", size);
     }
@@ -67,36 +51,20 @@ void* espure_calloc(size_t nmemb, size_t size, const espure_config_t* config) {
     if (nmemb == 0 || size == 0) {
         return NULL;
     }
-    
-    size_t total = nmemb * size;
-    
-    /* Check for overflow */
-    if (total / nmemb != size) {
+
+    if (nmemb > SIZE_MAX / size) {
         ESP_LOGE(TAG, "Integer overflow in calloc: %zu * %zu", nmemb, size);
         return NULL;
     }
-    
-    uint32_t caps = MALLOC_CAP_8BIT;
-    
-#ifdef CONFIG_ESPURE_USE_PSRAM
-    if (config && config->use_psram && total >= PSRAM_THRESHOLD) {
-        caps |= MALLOC_CAP_SPIRAM;
-        void* ptr = heap_caps_calloc(nmemb, size, caps);
-        if (ptr) {
-            return ptr;
-        }
-        
-        ESP_LOGW(TAG, "PSRAM calloc failed (%zu bytes), falling back to DRAM", total);
-        caps = MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT;
-    } else {
-        caps = MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT;
-    }
-#else
-    (void)config;
-    caps = MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT;
-#endif
-    
+
+    size_t total = nmemb * size;
+    bool use_spiram = prefers_spiram(total, config);
+    uint32_t caps = use_spiram ? (MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT) : INTERNAL_CAPS;
     void* ptr = heap_caps_calloc(nmemb, size, caps);
+    if (!ptr && use_spiram) {
+        ESP_LOGW(TAG, "PSRAM calloc failed (%zu bytes), falling back to DRAM", total);
+        ptr = heap_caps_calloc(nmemb, size, INTERNAL_CAPS);
+    }
     if (!ptr) {
         ESP_LOGE(TAG, "Memory calloc failed: %zu * %zu = %zu bytes", nmemb, size, total);
     }
@@ -161,20 +129,13 @@ void* espure_malloc_aligned(size_t size, size_t alignment,
         return NULL;
     }
     
-    uint32_t caps = MALLOC_CAP_8BIT;
-    
-#ifdef CONFIG_ESPURE_USE_PSRAM
-    if (config && config->use_psram && size >= PSRAM_THRESHOLD) {
-        caps |= MALLOC_CAP_SPIRAM;
-    } else {
-        caps = MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT;
-    }
-#else
-    (void)config;
-    caps = MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT;
-#endif
-    
+    bool use_spiram = prefers_spiram(size, config);
+    uint32_t caps = use_spiram ? (MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT) : INTERNAL_CAPS;
     void* ptr = heap_caps_aligned_alloc(alignment, size, caps);
+    if (!ptr && use_spiram) {
+        ESP_LOGW(TAG, "PSRAM aligned allocation failed (%zu bytes), falling back to DRAM", size);
+        ptr = heap_caps_aligned_alloc(alignment, size, INTERNAL_CAPS);
+    }
     if (!ptr) {
         ESP_LOGE(TAG, "Aligned allocation failed: %zu bytes (align %zu)", size, alignment);
     }
@@ -194,11 +155,14 @@ void espure_print_heap_info(void) {
     /* Internal DRAM */
     size_t internal_free = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
     size_t internal_total = heap_caps_get_total_size(MALLOC_CAP_INTERNAL);
-    ESP_LOGI(TAG, "DRAM: %zu / %zu bytes free (%.1f%% used)",
-             internal_free, internal_total,
-             100.0 * (1.0 - (double)internal_free / internal_total));
+    if (internal_total > 0) {
+        ESP_LOGI(TAG, "DRAM: %zu / %zu bytes free (%.1f%% used)",
+                 internal_free, internal_total,
+                 100.0 * (1.0 - (double)internal_free / internal_total));
+    } else {
+        ESP_LOGI(TAG, "DRAM: Not available");
+    }
     
-#ifdef CONFIG_ESPURE_USE_PSRAM
     /* External PSRAM */
     size_t spiram_free = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
     size_t spiram_total = heap_caps_get_total_size(MALLOC_CAP_SPIRAM);
@@ -209,7 +173,6 @@ void espure_print_heap_info(void) {
     } else {
         ESP_LOGI(TAG, "PSRAM: Not available");
     }
-#endif
     
     /* Largest free block */
     size_t largest = heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);

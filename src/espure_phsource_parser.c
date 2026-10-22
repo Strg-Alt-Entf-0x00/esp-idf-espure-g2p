@@ -2,16 +2,14 @@
  * @file espure_phsource_parser.c
  * @brief Parser for phsource/phonemes files
  * 
- * Parses espeak-ng phoneme definition format:
+ * Parses phoneme definition format:
  * 
  * phoneme X
  *   keyword value
  *   ...
  * endphoneme
  * 
- * Reference: .reference_codes/espure/espure/data/phsource/phonemes
- * 
- * NOTE: Uses static buffers to minimize stack usage (ESP32 stack safety)
+ * Parser state is per invocation so initialization can safely run concurrently.
  */
 
 #include "espure_internal.h"
@@ -19,20 +17,18 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <esp_log.h>
-#include <esp_task_wdt.h>
 
 static const char* TAG = "espure_parser";
-
-// Static buffers to reduce stack usage (thread-safe for single-threaded parsing)
-static char g_keyword_buf[32];
-static char g_value_buf[64];
-static char g_line_buf[128];
 
 // Parser state
 typedef struct {
     const char* input;
     size_t pos;
     size_t line;
+    char keyword_buf[32];
+    char value_buf[64];
+    char line_buf[128];
+    bool failed;
 } parser_state_t;
 
 /**
@@ -65,15 +61,36 @@ static void skip_whitespace(parser_state_t* state) {
  * Read a token (word or identifier)
  */
 static bool read_token(parser_state_t* state, char* buffer, size_t buf_size) {
+    if (buf_size == 0) {
+        state->failed = true;
+        return false;
+    }
     skip_whitespace(state);
     
     size_t i = 0;
-    while (state->input[state->pos] && !isspace((unsigned char)state->input[state->pos]) && 
-           state->input[state->pos] != '/' && i < buf_size - 1) {
-        buffer[i++] = state->input[state->pos++];
+    bool truncated = false;
+    while (state->input[state->pos] &&
+           !isspace((unsigned char)state->input[state->pos]) &&
+           state->input[state->pos] != '/') {
+        if (i < buf_size - 1) {
+            buffer[i++] = state->input[state->pos];
+        } else {
+            truncated = true;
+        }
+        state->pos++;
     }
     buffer[i] = '\0';
-    
+
+    if (truncated) {
+        ESP_LOGE(TAG, "Line %zu: token exceeds %zu bytes", state->line, buf_size - 1);
+        state->failed = true;
+        return false;
+    }
+    if (i == 0 && state->input[state->pos] == '/') {
+        ESP_LOGE(TAG, "Line %zu: unexpected '/' outside a comment", state->line);
+        state->failed = true;
+        return false;
+    }
     return i > 0;
 }
 
@@ -81,17 +98,35 @@ static bool read_token(parser_state_t* state, char* buffer, size_t buf_size) {
  * Read rest of line
  */
 static void read_line(parser_state_t* state, char* buffer, size_t buf_size) {
-    skip_whitespace(state);
+    if (buf_size == 0) {
+        state->failed = true;
+        return;
+    }
+    while (state->input[state->pos] == ' ' ||
+           state->input[state->pos] == '\t' ||
+           state->input[state->pos] == '\r') {
+        state->pos++;
+    }
     
     size_t i = 0;
-    while (state->input[state->pos] && state->input[state->pos] != '\n' && i < buf_size - 1) {
-        buffer[i++] = state->input[state->pos++];
+    bool truncated = false;
+    while (state->input[state->pos] && state->input[state->pos] != '\n') {
+        if (i < buf_size - 1) {
+            buffer[i++] = state->input[state->pos];
+        } else {
+            truncated = true;
+        }
+        state->pos++;
     }
     buffer[i] = '\0';
     
     // Trim trailing whitespace
     while (i > 0 && isspace((unsigned char)buffer[i - 1])) {
         buffer[--i] = '\0';
+    }
+    if (truncated) {
+        ESP_LOGE(TAG, "Line %zu: line exceeds %zu bytes", state->line, buf_size - 1);
+        state->failed = true;
     }
 }
 
@@ -107,6 +142,7 @@ static uint8_t parse_type_keyword(const char* keyword) {
     if (strcmp(keyword, "frc") == 0) return 7;     // PH_FRICATIVE
     if (strcmp(keyword, "nas") == 0 || strcmp(keyword, "nasal") == 0) return 9;  // PH_NASAL
     if (strcmp(keyword, "virtual") == 0) return 10; // PH_VIRTUAL
+    if (strcmp(keyword, "afr") == 0) return ESPURE_PHONEME_AFFRICATE;
     
     return 0;  // INVALID
 }
@@ -115,12 +151,12 @@ static uint8_t parse_type_keyword(const char* keyword) {
  * Parse a single phoneme attribute
  */
 static void parse_attribute(parser_state_t* state, espure_phoneme_t* phoneme) {
-    if (!read_token(state, g_keyword_buf, sizeof(g_keyword_buf))) {
+    if (!read_token(state, state->keyword_buf, sizeof(state->keyword_buf))) {
         return;
     }
     
     // Check for program: block
-    if (strcmp(g_keyword_buf, "program:") == 0) {
+    if (strcmp(state->keyword_buf, "program:") == 0) {
         // Parse program block: multiple lines until "endprogram"
         // Store as raw text (will be interpreted at runtime)
         
@@ -143,23 +179,25 @@ static void parse_attribute(parser_state_t* state, espure_phoneme_t* phoneme) {
                 // Note: Using malloc directly (not espure_malloc) since we don't have config here
                 // TODO: Pass config to parser for proper PSRAM allocation
                 phoneme->program = (char*)malloc(program_len + 1);
-                if (phoneme->program) {
-                    memcpy(phoneme->program, &state->input[program_start], program_len);
-                    phoneme->program[program_len] = '\0';
-                    
-                    // Remove leading/trailing whitespace
-                    char* p = phoneme->program;
-                    while (*p && isspace((unsigned char)*p)) p++;
-                    size_t len = strlen(p);
-                    while (len > 0 && isspace((unsigned char)p[len - 1])) len--;
-                    p[len] = '\0';
-                    
-                    if (p != phoneme->program) {
-                        memmove(phoneme->program, p, len + 1);
-                    }
-                    
-                    ESP_LOGD(TAG, "  program: %zu bytes", strlen(phoneme->program));
+                if (!phoneme->program) {
+                    ESP_LOGE(TAG, "Line %zu: failed to allocate phoneme program",
+                             state->line);
+                    state->failed = true;
+                    return;
                 }
+                memcpy(phoneme->program, &state->input[program_start], program_len);
+                phoneme->program[program_len] = '\0';
+                    
+                char* p = phoneme->program;
+                while (*p && isspace((unsigned char)*p)) p++;
+                size_t len = strlen(p);
+                while (len > 0 && isspace((unsigned char)p[len - 1])) len--;
+                p[len] = '\0';
+                if (p != phoneme->program) {
+                    memmove(phoneme->program, p, len + 1);
+                }
+
+                ESP_LOGD(TAG, "  program: %zu bytes", strlen(phoneme->program));
             }
             
             // Skip to after "endprogram"
@@ -169,44 +207,52 @@ static void parse_attribute(parser_state_t* state, espure_phoneme_t* phoneme) {
             while (state->input[state->pos] && state->input[state->pos] != '\n') {
                 state->pos++;
             }
+        } else {
+            ESP_LOGE(TAG, "Line %zu: unterminated phoneme program", state->line);
+            state->failed = true;
         }
         
         return;
     }
     
     // Check if it's a type keyword
-    uint8_t type = parse_type_keyword(g_keyword_buf);
+    uint8_t type = parse_type_keyword(state->keyword_buf);
     if (type != 0) {
         phoneme->type = type;
         return;
     }
     
     // Other attributes
-    if (strcmp(g_keyword_buf, "stress_type") == 0) {
-        if (read_token(state, g_value_buf, sizeof(g_value_buf))) {
-            phoneme->stress_type = atoi(g_value_buf);
+    if (strcmp(state->keyword_buf, "stress_type") == 0) {
+        if (read_token(state, state->value_buf, sizeof(state->value_buf))) {
+            phoneme->stress_type = atoi(state->value_buf);
+        } else {
+            state->failed = true;
         }
     }
-    else if (strcmp(g_keyword_buf, "ipa") == 0) {
-        read_line(state, g_line_buf, sizeof(g_line_buf));
+    else if (strcmp(state->keyword_buf, "ipa") == 0) {
+        read_line(state, state->line_buf, sizeof(state->line_buf));
         // IPA allocation skipped for now (Phase 3 completion)
     }
-    else if (strcmp(g_keyword_buf, "unstressed") == 0) {
+    else if (strcmp(state->keyword_buf, "unstressed") == 0) {
         phoneme->flags |= 0x0001;  // FLAG_UNSTRESSED
     }
-    else if (strcmp(g_keyword_buf, "nolink") == 0) {
+    else if (strcmp(state->keyword_buf, "nolink") == 0) {
         phoneme->flags |= 0x0002;  // FLAG_NOLINK
     }
-    else if (strcmp(g_keyword_buf, "starttype") == 0 ||
-             strcmp(g_keyword_buf, "endtype") == 0 ||
-             strcmp(g_keyword_buf, "length") == 0 ||
-             strcmp(g_keyword_buf, "lengthmod") == 0) {
+    else if (strcmp(state->keyword_buf, "starttype") == 0 ||
+             strcmp(state->keyword_buf, "endtype") == 0 ||
+             strcmp(state->keyword_buf, "length") == 0 ||
+             strcmp(state->keyword_buf, "lengthmod") == 0) {
         // Read and ignore for now
-        read_token(state, g_value_buf, sizeof(g_value_buf));
+        read_token(state, state->value_buf, sizeof(state->value_buf));
+        if (state->failed) {
+            return;
+        }
     }
     else {
         // Unknown keyword - skip rest of line
-        read_line(state, g_line_buf, sizeof(g_line_buf));
+        read_line(state, state->line_buf, sizeof(state->line_buf));
     }
 }
 
@@ -218,27 +264,35 @@ static void parse_attribute(parser_state_t* state, espure_phoneme_t* phoneme) {
  */
 static bool parse_phoneme(parser_state_t* state, espure_phoneme_t* phoneme) {
     // Read "phoneme"
-    if (!read_token(state, g_keyword_buf, sizeof(g_keyword_buf)) || 
-        strcmp(g_keyword_buf, "phoneme") != 0) {
+    if (!read_token(state, state->keyword_buf, sizeof(state->keyword_buf)) ||
+        strcmp(state->keyword_buf, "phoneme") != 0) {
         return false;
     }
     
     // Read mnemonic
-    if (!read_token(state, g_value_buf, sizeof(g_value_buf))) {
+    if (!read_token(state, state->value_buf, sizeof(state->value_buf))) {
         ESP_LOGE(TAG, "Line %zu: Expected phoneme mnemonic", state->line);
+        state->failed = true;
         return false;
     }
     
     // Unescape backslashes: \, -> ,
     size_t j = 0;
-    for (size_t i = 0; g_value_buf[i] && j < 7; i++) {
-        if (g_value_buf[i] == '\\' && g_value_buf[i + 1]) {
-            phoneme->mnemonic[j++] = g_value_buf[++i];
+    size_t i = 0;
+    for (; state->value_buf[i] && j < sizeof(phoneme->mnemonic) - 1; i++) {
+        if (state->value_buf[i] == '\\' && state->value_buf[i + 1]) {
+            phoneme->mnemonic[j++] = state->value_buf[++i];
         } else {
-            phoneme->mnemonic[j++] = g_value_buf[i];
+            phoneme->mnemonic[j++] = state->value_buf[i];
         }
     }
     phoneme->mnemonic[j] = '\0';
+    if (state->value_buf[i]) {
+        ESP_LOGE(TAG, "Line %zu: phoneme mnemonic exceeds %zu bytes",
+                 state->line, sizeof(phoneme->mnemonic) - 1);
+        state->failed = true;
+        return false;
+    }
     
     ESP_LOGD(TAG, "Parsing phoneme '%s'", phoneme->mnemonic);
     
@@ -248,21 +302,25 @@ static bool parse_phoneme(parser_state_t* state, espure_phoneme_t* phoneme) {
         
         // Check for endphoneme
         size_t saved_pos = state->pos;
-        if (read_token(state, g_keyword_buf, sizeof(g_keyword_buf))) {
+        if (read_token(state, state->keyword_buf, sizeof(state->keyword_buf))) {
             // DEBUG
-            // printf("DEBUG: Read token '%s'\\n", g_keyword_buf);
-            if (strcmp(g_keyword_buf, "endphoneme") == 0) {
+            // printf("DEBUG: Read token '%s'\\n", state->keyword_buf);
+            if (strcmp(state->keyword_buf, "endphoneme") == 0) {
                 break;
             }
             // Not endphoneme, restore position
             state->pos = saved_pos;
-        } else {
-            // DEBUG
-            printf("DEBUG: read_token returned false at pos %zu, char: %02x\n", state->pos, state->input[state->pos]);
-            if (!state->input[state->pos]) break; // EOF
+        } else if (!state->input[state->pos]) {
+            ESP_LOGE(TAG, "Line %zu: unterminated phoneme '%s'",
+                     state->line, phoneme->mnemonic);
+            state->failed = true;
+            return false;
         }
         
         parse_attribute(state, phoneme);
+        if (state->failed) {
+            return false;
+        }
     }
     
     return true;
@@ -299,17 +357,20 @@ espure_err_t espure_parse_phsource(const char* content,
         
         // Check for "phoneme" keyword
         size_t saved_pos = state.pos;
-        if (!read_token(&state, g_keyword_buf, sizeof(g_keyword_buf))) {
+        if (!read_token(&state, state.keyword_buf, sizeof(state.keyword_buf))) {
+            if (state.failed) {
+                return ESPURE_ERR_INVALID_ARG;
+            }
             break;
         }
         
-        if (strcmp(g_keyword_buf, "phoneme") == 0) {
+        if (strcmp(state.keyword_buf, "phoneme") == 0) {
             // Restore position and parse phoneme
             state.pos = saved_pos;
             
             if (*num_parsed >= max_phonemes) {
-                ESP_LOGW(TAG, "Max phonemes reached (%zu)", max_phonemes);
-                break;
+                ESP_LOGE(TAG, "Maximum phoneme count exceeded (%zu)", max_phonemes);
+                return ESPURE_ERR_INVALID_SIZE;
             }
             
             espure_phoneme_t* ph = &phonemes[*num_parsed];
@@ -317,15 +378,29 @@ espure_err_t espure_parse_phsource(const char* content,
             
             if (parse_phoneme(&state, ph)) {
                 (*num_parsed)++;
+            } else {
+                free(ph->ipa);
+                free(ph->program);
+                memset(ph, 0, sizeof(*ph));
+                return ESPURE_ERR_INVALID_ARG;
+            }
+            if (state.failed) {
+                return ESPURE_ERR_INVALID_ARG;
             }
         }
-        else if (strcmp(g_keyword_buf, "phonemetable") == 0) {
+        else if (strcmp(state.keyword_buf, "phonemetable") == 0) {
             // Skip phonemetable declaration
-            read_line(&state, g_line_buf, sizeof(g_line_buf));
+            read_line(&state, state.line_buf, sizeof(state.line_buf));
+            if (state.failed) {
+                return ESPURE_ERR_INVALID_SIZE;
+            }
         }
         else {
             // Unknown keyword - skip line
-            read_line(&state, g_line_buf, sizeof(g_line_buf));
+            read_line(&state, state.line_buf, sizeof(state.line_buf));
+            if (state.failed) {
+                return ESPURE_ERR_INVALID_SIZE;
+            }
         }
     }
     

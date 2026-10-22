@@ -2,7 +2,7 @@
  * @file espure_phoneme_program.h
  * @brief Phoneme program interpreter for context-dependent transformations
  * 
- * Implements espeak-ng's phoneme programs: IF/THEN conditionals with
+ * Implements context-dependent phoneme transformation programs: IF/THEN conditionals with
  * ChangePhoneme and InsertPhoneme instructions that modify the phoneme
  * list based on phonetic context.
  * 
@@ -106,7 +106,7 @@ void espure_phoneme_program_compact(
  */
 void espure_phoneme_program_deinit(const espure_phoneme_table_t* phoneme_table);
 
-void espure_assign_word_stress(const espure_translator_t* tr, espure_phlist_entry_t* plist, size_t plist_len);
+void espure_assign_word_stress(espure_phlist_entry_t* plist, size_t plist_len);
 
 #ifdef __cplusplus
 }
