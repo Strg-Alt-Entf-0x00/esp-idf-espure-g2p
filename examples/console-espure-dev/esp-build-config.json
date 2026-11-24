@@ -1,5 +1,4 @@
-﻿{
-    "version": 1,
+{
     "workflow": {
         "clean_build_prompt": false,
         "default_action": "build"
@@ -9,16 +8,19 @@
     },
     "serial": {
         "port": null,
-        "flash_baudrate": null,
+        "flash_baudrate": 921600,
         "monitor_baudrate": 115200
-    },
-    "monitor": {
-        "save_log": true
     },
     "storage": {
         "flash_images": false
     },
     "build": {
         "ccache": true
-    }
+    },
+    "logging": {
+        "enabled": true,
+        "directory": ".logs",
+        "keep_last_n_logs": 50
+    },
+    "version": 1
 }
