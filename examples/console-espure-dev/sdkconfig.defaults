@@ -1,0 +1,68 @@
+# ============================================================================
+# ESP32-P4 Hardware Target Configuration
+# ============================================================================
+CONFIG_IDF_TARGET="esp32p4"
+CONFIG_ESP32P4_SELECTS_REV_LESS_V3=y
+CONFIG_ESP_TASK_WDT_TIMEOUT_S=30
+CONFIG_FREERTOS_HZ=1000
+
+# ============================================================================
+# Flash Configuration (32 MB QIO Mode)
+# ============================================================================
+CONFIG_ESPTOOLPY_FLASHMODE_QIO=y
+CONFIG_ESPTOOLPY_FLASHSIZE_32MB=y
+
+# ============================================================================
+# Partition Table
+# ============================================================================
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+CONFIG_PARTITION_TABLE_FILENAME="partitions.csv"
+
+# ============================================================================
+# PSRAM Configuration (32 MB HEX-line @ 200MHz for G2P dictionary data)
+# ============================================================================
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_ECC_ENABLE=n
+CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL=16384
+CONFIG_SPIRAM_MALLOC_RESERVE_INTERNAL=32768
+CONFIG_SPIRAM_MODE_HEX=y
+CONFIG_SPIRAM_SPEED_200M=y
+CONFIG_SPIRAM_USE_MALLOC=y
+
+# --- PSRAM Candidates for later benchmarking (uncomment to test) ---
+# Moves .bss segment to external PSRAM, freeing internal SRAM:
+# CONFIG_SPIRAM_ALLOW_BSS_SEG_EXTERNAL_MEMORY=y
+# Enables Execute-In-Place from PSRAM:
+# CONFIG_SPIRAM_XIP_FROM_PSRAM=y
+
+# ============================================================================
+# Cache Configuration (ESP32-P4 L2 Cache)
+# ============================================================================
+# Candidates for benchmark testing on large dictionary / TTS pipelines:
+# CONFIG_CACHE_L2_CACHE_512KB=y
+# CONFIG_CACHE_L2_CACHE_LINE_128B=y
+
+# ============================================================================
+# Compiler & Performance Optimization
+# ============================================================================
+# Baseline performance optimization (-O2 / -O3):
+CONFIG_COMPILER_OPTIMIZATION_PERF=y
+
+# --- Compiler Candidates for later benchmarking (uncomment to test) ---
+# Link-Time Optimization (LTO): Inlines functions across translation units:
+# CONFIG_COMPILER_LTO=y
+# Disables assertions in hot path for maximum throughput:
+# CONFIG_COMPILER_OPTIMIZATION_ASSERTIONS_DISABLE=y
+
+# ============================================================================
+# Task & Stack Sizing
+# ============================================================================
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=12288
+
+# ============================================================================
+# espure G2P Engine Configuration
+# ============================================================================
+CONFIG_ESPURE_DICT_HUFFMAN_TRIE=y
+CONFIG_ESPURE_LOCALE_DE_DE=y
+CONFIG_ESPURE_LOCALE_EN_GB=y

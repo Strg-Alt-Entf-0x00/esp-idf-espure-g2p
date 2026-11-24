@@ -1,0 +1,13 @@
+name: "espure"
+version: "1.0.0"
+description: "A native ESP-IDF grapheme-to-phoneme component for embedded systems"
+license: "PolyForm-Noncommercial-1.0.0"
+
+files:
+  exclude:
+    - "**/.*"
+    - "**/.*/**/*"
+    - "**/.venv/**/*"
+    - "**/*.egg-info/**/*"
+    - "**/*.old"
+    - "**/*.bak"

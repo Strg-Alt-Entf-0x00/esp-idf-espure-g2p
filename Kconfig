@@ -1,0 +1,42 @@
+menu "espure Configuration"
+
+    menu "Locale Selection"
+        comment "Select locales to include in build"
+        comment "Each enabled locale adds data to the firmware image"
+
+        config ESPURE_LOCALE_DE_DE
+            bool "German Dictionary (de-DE)"
+            default y
+            help
+                Include the German (Germany) locale dictionary and phoneme rules.
+                The final firmware footprint depends on the selected dictionary
+                representation, target, and build configuration. Check the
+                target build's size report rather than relying on an estimate.
+
+        config ESPURE_LOCALE_EN_GB
+            bool "British English Architecture Pilot (en-GB)"
+            default n
+            help
+                Include a small English pronunciation pilot. This is not full
+                English support and does not provide English fallback rules.
+
+    endmenu
+
+    choice
+        prompt "Dictionary Storage Mode"
+        default ESPURE_DICT_BINARY_ARRAY
+        help
+            Select the dictionary representation and lookup path. The compressed
+            implementation uses a block index, front-coded words, and Huffman-
+            coded pronunciations; it is not a trie despite the legacy option
+            symbol name. Compare linked size, runtime memory, and lookup latency
+            for the actual target build before choosing a mode.
+
+        config ESPURE_DICT_BINARY_ARRAY
+            bool "Sorted Array (Binary Search)"
+
+        config ESPURE_DICT_HUFFMAN_TRIE
+            bool "Front-Coded + Huffman (Legacy Symbol Name)"
+    endchoice
+
+endmenu

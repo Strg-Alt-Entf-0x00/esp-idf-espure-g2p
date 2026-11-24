@@ -1,0 +1,24 @@
+﻿{
+    "version": 1,
+    "workflow": {
+        "clean_build_prompt": false,
+        "default_action": "build"
+    },
+    "esp_idf": {
+        "path": null
+    },
+    "serial": {
+        "port": null,
+        "flash_baudrate": null,
+        "monitor_baudrate": 115200
+    },
+    "monitor": {
+        "save_log": true
+    },
+    "storage": {
+        "flash_images": false
+    },
+    "build": {
+        "ccache": true
+    }
+}
