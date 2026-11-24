@@ -29,9 +29,9 @@ extern const espure_phoneme_t ESPURE_PHONEMES_DE_DE[];
 extern const size_t ESPURE_NUM_PHONEMES_DE_DE;
 #endif
 
-#ifdef CONFIG_ESPURE_LOCALE_EN_GB
-extern const espure_phoneme_t ESPURE_PHONEMES_EN_GB[];
-extern const size_t ESPURE_NUM_PHONEMES_EN_GB;
+#ifdef CONFIG_ESPURE_LOCALE_EN_US
+extern const espure_phoneme_t ESPURE_PHONEMES_EN_US[];
+extern const size_t ESPURE_NUM_PHONEMES_EN_US;
 #endif
 
 espure_err_t espure_phoneme_table_init(const char* lang,
@@ -67,10 +67,10 @@ espure_err_t espure_phoneme_table_init(const char* lang,
     }
 #endif
 
-#ifdef CONFIG_ESPURE_LOCALE_EN_GB
-    if (strcmp(lang, "en-GB") == 0) {
-        table->phonemes = (espure_phoneme_t*)ESPURE_PHONEMES_EN_GB;
-        table->num_phonemes = ESPURE_NUM_PHONEMES_EN_GB;
+#ifdef CONFIG_ESPURE_LOCALE_EN_US
+    if (strcmp(lang, "en-US") == 0) {
+        table->phonemes = (espure_phoneme_t*)ESPURE_PHONEMES_EN_US;
+        table->num_phonemes = ESPURE_NUM_PHONEMES_EN_US;
         table->is_static = true;
         *out = table;
         ESP_LOGI(TAG, "Phoneme table loaded from static Flash ROM: %zu phonemes (0 heap used)", table->num_phonemes);

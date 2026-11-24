@@ -32,7 +32,7 @@ static void print_help(void) {
     printf("  \x1b[32mrules <word>\x1b[0m     (or \x1b[32mr <word>\x1b[0m)  : Pure rules-only bypass (no dictionary)\r\n");
     printf("  \x1b[32mmorph <word>\x1b[0m     (or \x1b[32mm <word>\x1b[0m)  : Morphological decomposition & compound split\r\n");
     printf("  \x1b[32mbench <word> [N]\x1b[0m (or \x1b[32mb <word>\x1b[0m)  : Benchmark N phonemizations (throughput & latency)\r\n");
-    printf("  \x1b[32mlocale <loc>\x1b[0m                    : Switch active locale (de-DE, en-GB)\r\n");
+    printf("  \x1b[32mlocale <loc>\x1b[0m                    : Switch active locale (de-DE, en-US)\r\n");
     printf("  \x1b[32minfo\x1b[0m                            : Show memory, PSRAM, and dictionary statistics\r\n");
     printf("  \x1b[32mhelp\x1b[0m                            : Display this help message\r\n\r\n");
 }
@@ -167,12 +167,12 @@ static void handle_command(const char *line) {
             s_current_g2p = s_g2p_de;
             strlcpy(s_current_locale, "de-DE", sizeof(s_current_locale));
             printf("Switched to locale: de-DE\r\n");
-        } else if (strcmp(arg, "en-GB") == 0) {
+        } else if (strcmp(arg, "en-US") == 0) {
             s_current_g2p = s_g2p_en;
-            strlcpy(s_current_locale, "en-GB", sizeof(s_current_locale));
-            printf("Switched to locale: en-GB\r\n");
+            strlcpy(s_current_locale, "en-US", sizeof(s_current_locale));
+            printf("Switched to locale: en-US\r\n");
         } else {
-            printf("Unknown locale '%s'. Supported: de-DE, en-GB\r\n", arg);
+            printf("Unknown locale '%s'. Supported: de-DE, en-US\r\n", arg);
         }
     } else if (strcmp(cmd, "info") == 0) {
         cmd_info();
@@ -200,10 +200,10 @@ void espure_console_start(void) {
         return;
     }
 
-    ESP_LOGI(TAG, "Initializing English G2P engine (en-GB)...");
-    err = espure_init("en-GB", &config, &s_g2p_en);
+    ESP_LOGI(TAG, "Initializing English G2P engine (en-US)...");
+    err = espure_init("en-US", &config, &s_g2p_en);
     if (err != ESPURE_OK) {
-        ESP_LOGW(TAG, "en-GB not available (%d)", err);
+        ESP_LOGW(TAG, "en-US not available (%d)", err);
     }
 
     s_current_g2p = s_g2p_de;

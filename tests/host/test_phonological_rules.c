@@ -185,8 +185,8 @@ static void test_ich_ach_laut(void) {
 
 static void test_locale_isolation(void) {
     char buf[128] = "t a: g";
-    /* en-GB does not run German phonological rules */
-    assert(espure_phonology_apply("en-GB", buf, sizeof(buf)) == ESPURE_OK);
+    /* en-US does not run German phonological rules */
+    assert(espure_phonology_apply("en-US", buf, sizeof(buf)) == ESPURE_OK);
     assert(strcmp(buf, "t a: g") == 0);
 }
 

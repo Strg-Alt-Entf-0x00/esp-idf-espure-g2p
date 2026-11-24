@@ -1,9 +1,9 @@
 /**
- * @file en_GB_normalize.c
- * @brief British English (en-GB) Text Normalization Pack
+ * @file en_US_normalize.c
+ * @brief American English (en-US) Text Normalization Pack
  * 
  * Contains English abbreviation expansion rules, cardinal number-to-words
- * converters (0..999,999), and British English currency/symbol mappings.
+ * converters (0..999,999), and American English currency/symbol mappings.
  */
 
 #include "espure_normalize.h"
@@ -142,19 +142,25 @@ espure_err_t espure_number_to_english_words(int64_t number, char *output, size_t
  * English Symbol Expansion (£, $, €, %)
  * ======================================================================== */
 
-static espure_err_t en_GB_expand_symbol(const char *sym, char *output, size_t out_size, size_t *bytes_consumed) {
+static espure_err_t en_US_expand_symbol(const char *sym, char *output, size_t out_size, size_t *bytes_consumed) {
     if (!sym || !output || !bytes_consumed || out_size == 0) return ESPURE_ERR_INVALID_ARG;
-
-    /* Pound: £ (0xC2 0xA3) */
-    if ((unsigned char)sym[0] == 0xC2 && (unsigned char)sym[1] == 0xA3) {
-        *bytes_consumed = 2;
-        return (strlcpy(output, "Pound", out_size) < out_size) ? ESPURE_OK : ESPURE_ERR_BUFFER_TOO_SMALL;
-    }
 
     /* Dollar: $ (0x24) */
     if (sym[0] == '$') {
         *bytes_consumed = 1;
         return (strlcpy(output, "Dollar", out_size) < out_size) ? ESPURE_OK : ESPURE_ERR_BUFFER_TOO_SMALL;
+    }
+
+    /* Cent: ¢ (0xC2 0xA2) */
+    if ((unsigned char)sym[0] == 0xC2 && (unsigned char)sym[1] == 0xA2) {
+        *bytes_consumed = 2;
+        return (strlcpy(output, "Cent", out_size) < out_size) ? ESPURE_OK : ESPURE_ERR_BUFFER_TOO_SMALL;
+    }
+
+    /* Pound: £ (0xC2 0xA3) */
+    if ((unsigned char)sym[0] == 0xC2 && (unsigned char)sym[1] == 0xA3) {
+        *bytes_consumed = 2;
+        return (strlcpy(output, "Pound", out_size) < out_size) ? ESPURE_OK : ESPURE_ERR_BUFFER_TOO_SMALL;
     }
 
     /* Euro: € (0xE2 0x82 0xAC) */
@@ -176,10 +182,10 @@ static espure_err_t en_GB_expand_symbol(const char *sym, char *output, size_t ou
  * Exported Locale Operations
  * ======================================================================== */
 
-const espure_normalize_ops_t ESPURE_NORMALIZE_EN_GB = {
-    .locale = "en-GB",
+const espure_normalize_ops_t ESPURE_NORMALIZE_EN_US = {
+    .locale = "en-US",
     .abbrevs = ENGLISH_ABBREVS,
     .num_abbrevs = sizeof(ENGLISH_ABBREVS) / sizeof(ENGLISH_ABBREVS[0]),
     .number_to_words = espure_number_to_english_words,
-    .expand_symbol = en_GB_expand_symbol,
+    .expand_symbol = en_US_expand_symbol,
 };

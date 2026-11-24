@@ -341,6 +341,82 @@ static espure_err_t apply_german_phonology(char tokens[MAX_TOKENS][MAX_TOKEN_LEN
         }
     }
 
+    /* Pass 5: Stem-Initial st- / sp- Palatalization (/s/ -> [ʃ] = "S")
+     * German phonotactics strictly require [ʃt] and [ʃp] at the onset of root stems,
+     * including after inseparable prefixes (be-, ge-, ver-, zer-, ent-, er-)
+     * and compound/morpheme boundaries.
+     */
+    for (size_t i = 0; i + 1 < n; i++) {
+        if (strcmp(tokens[i], "s") == 0 &&
+            (strcmp(tokens[i + 1], "t") == 0 || strcmp(tokens[i + 1], "p") == 0)) {
+            size_t next = i + 2;
+            while (next < n && is_stress_mark(tokens[next])) {
+                next++;
+            }
+            if (next < n && (is_german_vowel(tokens[next]) ||
+                             strcmp(tokens[next], "r") == 0 ||
+                             strcmp(tokens[next], "l") == 0)) {
+                int prev = (int)i - 1;
+                while (prev >= 0 && is_stress_mark(tokens[prev])) {
+                    prev--;
+                }
+
+                bool is_stem_initial = false;
+                if (prev < 0 || is_boundary_mark(tokens[prev])) {
+                    is_stem_initial = true;
+                } else if (prev >= 1) {
+                    const char* ptok = tokens[prev];
+                    while (*ptok == '\'' || *ptok == ',' || *ptok == '%' || *ptok == '=') ptok++;
+
+                    /* Check inseparable prefixes: be-, ge- */
+                    if (strcmp(ptok, "@") == 0) {
+                        int pprev = prev - 1;
+                        while (pprev >= 0 && is_stress_mark(tokens[pprev])) pprev--;
+                        if (pprev >= 0) {
+                            const char* pptok = tokens[pprev];
+                            while (*pptok == '\'' || *pptok == ',' || *pptok == '%' || *pptok == '=') pptok++;
+                            if (strcmp(pptok, "b") == 0 || strcmp(pptok, "g") == 0) {
+                                is_stem_initial = true;
+                            }
+                        }
+                    }
+                    /* Check ver-, zer- (f E r, f 6, ts E r, ts 6) */
+                    else if (strcmp(ptok, "r") == 0 || strcmp(ptok, "6") == 0) {
+                        int pprev = prev - 1;
+                        const char* pptok = (pprev >= 0) ? tokens[pprev] : "";
+                        while (*pptok == '\'' || *pptok == ',' || *pptok == '%' || *pptok == '=') pptok++;
+                        if (strcmp(pptok, "E") == 0 || strcmp(pptok, "@") == 0) {
+                            pprev--;
+                        }
+                        while (pprev >= 0 && is_stress_mark(tokens[pprev])) pprev--;
+                        if (pprev >= 0) {
+                            pptok = tokens[pprev];
+                            while (*pptok == '\'' || *pptok == ',' || *pptok == '%' || *pptok == '=') pptok++;
+                            if (strcmp(pptok, "f") == 0 || strcmp(pptok, "ts") == 0) {
+                                is_stem_initial = true;
+                            }
+                        }
+                    }
+                    /* Check ent- (E n t) */
+                    else if (strcmp(ptok, "t") == 0) {
+                        int pprev = prev - 1;
+                        if (pprev >= 0) {
+                            const char* pptok = tokens[pprev];
+                            while (*pptok == '\'' || *pptok == ',' || *pptok == '%' || *pptok == '=') pptok++;
+                            if (strcmp(pptok, "n") == 0) {
+                                is_stem_initial = true;
+                            }
+                        }
+                    }
+                }
+
+                if (is_stem_initial) {
+                    strlcpy(tokens[i], "S", MAX_TOKEN_LEN);
+                }
+            }
+        }
+    }
+
     *token_count = n;
     return ESPURE_OK;
 }

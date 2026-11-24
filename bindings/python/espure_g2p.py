@@ -83,7 +83,7 @@ class G2P:
         Initialize G2P for a specific language.
         
         Args:
-            lang: BCP 47 locale identifier (e.g. "de-DE", "en-GB")
+            lang: BCP 47 locale identifier (e.g. "de-DE", "en-US")
             use_cache: Whether to cache phonemization results in Python
         """
         self.lang = lang
@@ -103,8 +103,11 @@ class G2P:
         if system == "Windows":
             lib_names = ["espure.dll", "espure_shared.dll", "libespure.dll"]
             search_dirs = [
+                self._lib_root / "tests" / "host" / "build" / "Release",
                 self._lib_root / "host_test" / "build" / "Release",
+                self._lib_root / "tests" / "host" / "build" / "Debug",
                 self._lib_root / "host_test" / "build" / "Debug",
+                self._lib_root / "tests" / "host" / "build",
                 self._lib_root / "host_test" / "build",
                 self._lib_root / "build" / "Release",
                 self._lib_root / "build",
@@ -112,12 +115,14 @@ class G2P:
         elif system == "Darwin":
             lib_names = ["libespure.dylib", "espure.dylib"]
             search_dirs = [
+                self._lib_root / "tests" / "host" / "build",
                 self._lib_root / "host_test" / "build",
                 self._lib_root / "build",
             ]
         else:
             lib_names = ["libespure.so", "espure.so"]
             search_dirs = [
+                self._lib_root / "tests" / "host" / "build",
                 self._lib_root / "host_test" / "build",
                 self._lib_root / "build",
             ]
@@ -132,9 +137,14 @@ class G2P:
     def _find_host_test(self) -> Optional[Path]:
         """Find the host_test executable for subprocess fallback."""
         candidates = [
+            self._lib_root / "tests" / "host" / "build" / "Release" / "test_runtime_bounds.exe",
+            self._lib_root / "tests" / "host" / "build" / "Release" / "espure_host_test.exe",
             self._lib_root / "host_test" / "build" / "Release" / "espure_host_test.exe",
+            self._lib_root / "tests" / "host" / "build" / "espure_host_test.exe",
             self._lib_root / "host_test" / "build" / "espure_host_test.exe",
+            self._lib_root / "tests" / "host" / "x64" / "Release" / "espure_host_test.exe",
             self._lib_root / "host_test" / "x64" / "Release" / "espure_host_test.exe",
+            self._lib_root / "tests" / "host" / "build" / "espure_host_test",
             self._lib_root / "host_test" / "build" / "espure_host_test",
         ]
         for candidate in candidates:

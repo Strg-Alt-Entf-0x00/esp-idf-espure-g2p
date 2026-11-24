@@ -19,7 +19,7 @@ static int expect_phonemization(espure_handle_t handle, const char* word,
 int main(void) {
     espure_config_t config = ESPURE_CONFIG_DEFAULT();
     espure_handle_t de_DE = NULL;
-    espure_handle_t en_GB = NULL;
+    espure_handle_t en_US = NULL;
     char output[32];
     espure_err_t err;
     int failed = 0;
@@ -27,8 +27,8 @@ int main(void) {
     if (!espure_locale_available("de-DE") || espure_locale_available("de") ||
         espure_locale_available("de_DE") ||
         espure_locale_available("de-DE-standard") ||
-        !espure_locale_available("en-GB") || espure_locale_available("en") ||
-        espure_locale_available("en_GB")) {
+        !espure_locale_available("en-US") || espure_locale_available("en") ||
+        espure_locale_available("en_US")) {
         fprintf(stderr, "Locale availability does not match the canonical BCP 47 identifiers\n");
         return 1;
     }
@@ -36,7 +36,7 @@ int main(void) {
     const char** locales = espure_get_locales(&locale_count);
     if (!locales || locale_count != 2 ||
         strcmp(locales[0], "de-DE") != 0 ||
-        strcmp(locales[1], "en-GB") != 0) {
+        strcmp(locales[1], "en-US") != 0) {
         fprintf(stderr, "Locale enumeration does not return canonical BCP 47 identifiers\n");
         return 1;
     }
@@ -50,27 +50,27 @@ int main(void) {
     }
     espure_handle_t ambiguous_english = NULL;
     if (espure_init("en", &config, &ambiguous_english) != ESPURE_ERR_INVALID_LANG ||
-        espure_init("en_GB", &config, &ambiguous_english) != ESPURE_ERR_INVALID_LANG) {
-        fprintf(stderr, "English aliases and underscore IDs should not select the en-GB pilot\n");
+        espure_init("en_US", &config, &ambiguous_english) != ESPURE_ERR_INVALID_LANG) {
+        fprintf(stderr, "English aliases and underscore IDs should not select the en-US pilot\n");
         espure_deinit(ambiguous_english);
         return 1;
     }
 
     char mutable_locale[] = "de-DE";
     if (espure_init(mutable_locale, &config, &de_DE) != ESPURE_OK ||
-        espure_init("en-GB", &config, &en_GB) != ESPURE_OK) {
+        espure_init("en-US", &config, &en_US) != ESPURE_OK) {
         fprintf(stderr, "Failed to initialize concurrent DE/EN pilot handles\n");
         espure_deinit(de_DE);
-        espure_deinit(en_GB);
+        espure_deinit(en_US);
         return 1;
     }
-    memcpy(mutable_locale, "en-GB", sizeof(mutable_locale));
+    memcpy(mutable_locale, "en-US", sizeof(mutable_locale));
 
-    failed |= expect_phonemization(en_GB, "bad", "bˈæd");
-    failed |= expect_phonemization(en_GB, "hello", "həlˈəʊ");
-    failed |= expect_phonemization(en_GB, "HELLO", "həlˈəʊ");
-    failed |= expect_phonemization(en_GB, "world", "wˈɜːld");
-    failed |= expect_phonemization(en_GB, "yes", "jˈɛs");
+    failed |= expect_phonemization(en_US, "bad", "bˈæd");
+    failed |= expect_phonemization(en_US, "hello", "həlˈoʊ");
+    failed |= expect_phonemization(en_US, "HELLO", "həlˈoʊ");
+    failed |= expect_phonemization(en_US, "world", "wˈɜːld");
+    failed |= expect_phonemization(en_US, "yes", "jˈɛs");
     err = espure_phonemize(de_DE, "bad", output, sizeof(output), true);
     if (err != ESPURE_OK || strcmp(output, "bˈaːt") != 0) {
         fprintf(stderr, "German 'bad' should remain distinct from English: '%s' (error %d)\n",
@@ -78,7 +78,7 @@ int main(void) {
         failed = 1;
     }
 
-    err = espure_render(en_GB, "a", output, sizeof(output), true);
+    err = espure_render(en_US, "a", output, sizeof(output), true);
     if (err != ESPURE_OK || strcmp(output, "æ") != 0) {
         fprintf(stderr, "English renderer did not use its language map\n");
         failed = 1;
@@ -88,17 +88,17 @@ int main(void) {
         fprintf(stderr, "German renderer changed while English handle was active\n");
         failed = 1;
     }
-    err = espure_render(en_GB, "A", output, sizeof(output), true);
+    err = espure_render(en_US, "A", output, sizeof(output), true);
     if (err != ESPURE_ERR_NOT_FOUND || output[0] != '\0') {
         fprintf(stderr, "English renderer unexpectedly used a German-only mapping\n");
         failed = 1;
     }
-    err = espure_render(en_GB, "_^_ EN", output, sizeof(output), true);
+    err = espure_render(en_US, "_^_ EN", output, sizeof(output), true);
     if (err != ESPURE_ERR_NOT_SUPPORTED || output[0] != '\0') {
         fprintf(stderr, "English renderer did not reject an inline language switch\n");
         failed = 1;
     }
-    err = espure_phonemize(en_GB, "unlisted", output, sizeof(output), true);
+    err = espure_phonemize(en_US, "unlisted", output, sizeof(output), true);
     if (err != ESPURE_ERR_NOT_SUPPORTED || output[0] != '\0') {
         fprintf(stderr, "English pilot did not reject words outside its lexicon\n");
         failed = 1;
@@ -106,45 +106,45 @@ int main(void) {
 
     /* Test English text normalization */
     char en_norm[128];
-    if (espure_normalize_text("en-GB", "Dr. Smith", en_norm, sizeof(en_norm)) != ESPURE_OK ||
+    if (espure_normalize_text("en-US", "Dr. Smith", en_norm, sizeof(en_norm)) != ESPURE_OK ||
         strcmp(en_norm, "Doctor Smith") != 0) {
         fprintf(stderr, "English normalization failed for 'Dr. Smith': got '%s'\n", en_norm);
         failed = 1;
     }
-    if (espure_normalize_text("en-GB", "42", en_norm, sizeof(en_norm)) != ESPURE_OK ||
+    if (espure_normalize_text("en-US", "42", en_norm, sizeof(en_norm)) != ESPURE_OK ||
         strcmp(en_norm, "forty-two") != 0) {
         fprintf(stderr, "English number normalization failed for '42': got '%s'\n", en_norm);
         failed = 1;
     }
 
     espure_phoneme_table_t* de_table = NULL;
-    espure_phoneme_table_t* en_GB_table = NULL;
+    espure_phoneme_table_t* en_US_table = NULL;
     if (espure_phoneme_table_init("de-DE", &config, &de_table) != ESPURE_OK ||
-        espure_phoneme_table_init("en-GB", &config, &en_GB_table) != ESPURE_OK) {
+        espure_phoneme_table_init("en-US", &config, &en_US_table) != ESPURE_OK) {
         fprintf(stderr, "Failed to initialize locale-specific phoneme tables\n");
         failed = 1;
     } else if (!espure_phoneme_lookup(de_table, "pF") ||
-               espure_phoneme_lookup(en_GB_table, "pF") ||
-               !espure_phoneme_lookup(en_GB_table, "@U") ||
-               espure_phoneme_lookup(de_table, "@U")) {
+               espure_phoneme_lookup(en_US_table, "pF") ||
+               !espure_phoneme_lookup(en_US_table, "oU") ||
+               espure_phoneme_lookup(de_table, "oU")) {
         fprintf(stderr, "English phoneme inventory reused German-only entries\n");
         failed = 1;
     }
-    espure_phoneme_table_deinit(en_GB_table);
+    espure_phoneme_table_deinit(en_US_table);
     espure_phoneme_table_deinit(de_table);
 
-    espure_deinit(en_GB);
+    espure_deinit(en_US);
     espure_deinit(de_DE);
 
     for (size_t i = 0; i < 3; i++) {
-        en_GB = NULL;
-        if (espure_init("en-GB", &config, &en_GB) != ESPURE_OK) {
+        en_US = NULL;
+        if (espure_init("en-US", &config, &en_US) != ESPURE_OK) {
             fprintf(stderr, "English pilot reinitialization failed on iteration %zu\n", i);
             failed = 1;
             break;
         }
-        failed |= expect_phonemization(en_GB, "hello", "həlˈəʊ");
-        espure_deinit(en_GB);
+        failed |= expect_phonemization(en_US, "hello", "həlˈoʊ");
+        espure_deinit(en_US);
     }
     return failed;
 }

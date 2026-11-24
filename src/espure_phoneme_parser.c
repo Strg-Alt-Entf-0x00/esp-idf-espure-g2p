@@ -53,10 +53,11 @@ espure_err_t espure_parse_phoneme_string(
             found = espure_phoneme_lookup(phoneme_table, candidate);
             
             if (found) {
-                // Syllabic/schwa+sonorant coda mnemonics (@r, @n, @m, @l) cannot precede a vowel;
-                // the sonorant consonant is an onset to the following syllable.
+                // Syllabic/schwa+coda mnemonics (@r, @n, @m, @l, @st) cannot precede a vowel;
+                // the consonant(s) are an onset to the following syllable.
                 if (len > 1 && candidate[0] == '@' &&
-                    (candidate[1] == 'r' || candidate[1] == 'n' || candidate[1] == 'm' || candidate[1] == 'l')) {
+                    (candidate[1] == 'r' || candidate[1] == 'n' || candidate[1] == 'm' || candidate[1] == 'l' ||
+                     (candidate[1] == 's' && candidate[2] == 't'))) {
                     if (pos + len < input_len && is_phoneme_vowel_following(&input[pos + len])) {
                         found = NULL;
                         continue;

@@ -33,14 +33,14 @@ if(CONFIG_ESPURE_LOCALE_DE_DE)
     endif()
 endif()
 
-if(CONFIG_ESPURE_LOCALE_EN_GB)
-    message(STATUS "espure: Adding English (en-GB) pilot files")
-    message(WARNING "espure: en-GB is an architecture pilot with limited vocabulary")
+if(CONFIG_ESPURE_LOCALE_EN_US)
+    message(STATUS "espure: Adding American English (en-US) pilot files")
+    message(WARNING "espure: en-US is an architecture pilot with limited vocabulary")
     list(APPEND srcs
-        "lang/en_GB/en_GB_dict.c"
-        "lang/en_GB/en_GB_ipa.c"
-        "lang/en_GB/en_GB_phonemes_data.c"
-        "lang/en_GB/en_GB_normalize.c"
+        "lang/en_US/en_US_dict.c"
+        "lang/en_US/en_US_ipa.c"
+        "lang/en_US/en_US_phonemes_data.c"
+        "lang/en_US/en_US_normalize.c"
     )
 endif()
 

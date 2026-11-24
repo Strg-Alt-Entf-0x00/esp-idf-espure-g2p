@@ -1,7 +1,7 @@
-/* Hand-curated static const phoneme table for en-GB architecture pilot */
+/* Hand-curated static const phoneme table for en-US architecture pilot */
 #include "espure_internal.h"
 
-const espure_phoneme_t ESPURE_PHONEMES_EN_GB[44] = {
+const espure_phoneme_t ESPURE_PHONEMES_EN_US[45] = {
     {"\x01" ""   ,  1, ESPURE_PHONEME_INVALID  , NULL, 0, 0, NULL}, /* 0 */
     {"%"         ,  2, ESPURE_PHONEME_STRESS   , NULL, 1, 0, NULL}, /* 1 */
     {"%%"        ,  3, ESPURE_PHONEME_INVALID  , NULL, 0, 0, NULL}, /* 2 */
@@ -36,16 +36,17 @@ const espure_phoneme_t ESPURE_PHONEMES_EN_GB[44] = {
     {"#o"        , 32, ESPURE_PHONEME_INVALID  , NULL, 0, 0, NULL}, /* 31 */
     {"#u"        , 33, ESPURE_PHONEME_INVALID  , NULL, 0, 0, NULL}, /* 32 */
     {"@U"        , 34, ESPURE_PHONEME_VOWEL    , NULL, 0, 0, NULL}, /* 33 */
-    {"3:"        , 35, ESPURE_PHONEME_VOWEL    , NULL, 0, 0, NULL}, /* 34 */
-    {"E"         , 36, ESPURE_PHONEME_VOWEL    , NULL, 0, 0, NULL}, /* 35 */
-    {"a"         , 37, ESPURE_PHONEME_VOWEL    , NULL, 0, 0, NULL}, /* 36 */
-    {"b"         , 38, ESPURE_PHONEME_STOP     , NULL, 0, 0, NULL}, /* 37 */
-    {"d"         , 39, ESPURE_PHONEME_STOP     , NULL, 0, 0, NULL}, /* 38 */
-    {"h"         , 40, ESPURE_PHONEME_FRICATIVE, NULL, 0, 0, NULL}, /* 39 */
-    {"j"         , 41, ESPURE_PHONEME_LIQUID   , NULL, 0, 0, NULL}, /* 40 */
-    {"l"         , 42, ESPURE_PHONEME_LIQUID   , NULL, 0, 0, NULL}, /* 41 */
-    {"s"         , 43, ESPURE_PHONEME_FRICATIVE, NULL, 0, 0, NULL}, /* 42 */
-    {"w"         , 44, ESPURE_PHONEME_LIQUID   , NULL, 0, 0, NULL}, /* 43 */
+    {"oU"        , 35, ESPURE_PHONEME_VOWEL    , NULL, 0, 0, NULL}, /* 34 */
+    {"3:"        , 36, ESPURE_PHONEME_VOWEL    , NULL, 0, 0, NULL}, /* 35 */
+    {"E"         , 37, ESPURE_PHONEME_VOWEL    , NULL, 0, 0, NULL}, /* 36 */
+    {"a"         , 38, ESPURE_PHONEME_VOWEL    , NULL, 0, 0, NULL}, /* 37 */
+    {"b"         , 39, ESPURE_PHONEME_STOP     , NULL, 0, 0, NULL}, /* 38 */
+    {"d"         , 40, ESPURE_PHONEME_STOP     , NULL, 0, 0, NULL}, /* 39 */
+    {"h"         , 41, ESPURE_PHONEME_FRICATIVE, NULL, 0, 0, NULL}, /* 40 */
+    {"j"         , 42, ESPURE_PHONEME_LIQUID   , NULL, 0, 0, NULL}, /* 41 */
+    {"l"         , 43, ESPURE_PHONEME_LIQUID   , NULL, 0, 0, NULL}, /* 42 */
+    {"s"         , 44, ESPURE_PHONEME_FRICATIVE, NULL, 0, 0, NULL}, /* 43 */
+    {"w"         , 45, ESPURE_PHONEME_LIQUID   , NULL, 0, 0, NULL}, /* 44 */
 };
 
-const size_t ESPURE_NUM_PHONEMES_EN_GB = 44;
+const size_t ESPURE_NUM_PHONEMES_EN_US = 45;

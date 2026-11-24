@@ -1,6 +1,6 @@
 #include <string.h>
 
-/* Hand-curated non-rhotic British English mappings used by the pilot lexicon. */
+/* General American English mappings used by the pilot lexicon. */
 typedef struct {
     const char* mnemonic;
     const char* ipa;
@@ -8,7 +8,8 @@ typedef struct {
 
 static const en_ipa_mapping_t EN_PILOT_IPA[] = {
     {"@", "ə"},
-    {"@U", "əʊ"},
+    {"@U", "oʊ"},
+    {"oU", "oʊ"},
     {"3:", "ɜː"},
     {"E", "ɛ"},
     {"a", "æ"},
@@ -21,7 +22,7 @@ static const en_ipa_mapping_t EN_PILOT_IPA[] = {
     {"w", "w"},
 };
 
-const char* espure_en_GB_ipa_lookup(const char* mnemonic) {
+const char* espure_en_US_ipa_lookup(const char* mnemonic) {
     if (!mnemonic) {
         return NULL;
     }

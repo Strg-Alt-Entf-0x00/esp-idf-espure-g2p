@@ -28,7 +28,9 @@ void espure_assign_word_stress(espure_phlist_entry_t* plist, size_t plist_len) {
                 vowel_indices[vowel_count] = i;
                 int current_stress = plist[i].stresslevel;
                 if (current_stress == 0) {
-                    if (plist[i].ph->flags & ESPURE_PHONEME_FLAG_UNSTRESSED) {
+                    if ((plist[i].ph->flags & ESPURE_PHONEME_FLAG_UNSTRESSED) ||
+                        strcmp(plist[i].ph->mnemonic, "@") == 0 ||
+                        strcmp(plist[i].ph->mnemonic, "@-") == 0) {
                         current_stress = STRESS_IS_UNSTRESSED;
                     } else {
                         current_stress = STRESS_IS_NOT_STRESSED;
@@ -55,12 +57,24 @@ void espure_assign_word_stress(espure_phlist_entry_t* plist, size_t plist_len) {
     
     if (vowel_count <= 1) return;
 
-    // Detect German inseparable prefixes (ver-, zer-, ent-, emp-, er-)
-    if (vowel_count >= 3 && vowel_indices[1] < plist_len) {
+    // Detect German inseparable prefixes (be-, ge-, ver-, zer-, ent-, emp-, er-)
+    if (vowel_count >= 2 && vowel_indices[1] < plist_len) {
         bool is_inseparable_prefix = false;
         
+        // Check "be-": starts with 'b' followed by schwa '@'
+        if (vowel_indices[1] == 1 && strcmp(plist[0].ph->mnemonic, "b") == 0 &&
+            (strcmp(plist[vowel_indices[1]].ph->mnemonic, "@") == 0 ||
+             strcmp(plist[vowel_indices[1]].ph->mnemonic, "@-") == 0)) {
+            is_inseparable_prefix = true;
+        }
+        // Check "ge-": starts with 'g' followed by schwa '@'
+        else if (vowel_indices[1] == 1 && strcmp(plist[0].ph->mnemonic, "g") == 0 &&
+                 (strcmp(plist[vowel_indices[1]].ph->mnemonic, "@") == 0 ||
+                  strcmp(plist[vowel_indices[1]].ph->mnemonic, "@-") == 0)) {
+            is_inseparable_prefix = true;
+        }
         // Check "ver-": starts with 'f' followed by vowel 1, followed by 'r' or '6'
-        if (vowel_indices[1] == 1 && strcmp(plist[0].ph->mnemonic, "f") == 0) {
+        else if (vowel_indices[1] == 1 && strcmp(plist[0].ph->mnemonic, "f") == 0) {
             size_t r_idx = vowel_indices[1] + 1;
             if (r_idx < plist_len && (strcmp(plist[r_idx].ph->mnemonic, "r") == 0 ||
                                      strcmp(plist[r_idx].ph->mnemonic, "6") == 0)) {

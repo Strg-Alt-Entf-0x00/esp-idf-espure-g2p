@@ -36,9 +36,9 @@ static const char* find_ipa(const espure_phoneme_table_t* table,
         }
     }
     const char* locale = espure_phoneme_table_locale(table);
-    if (locale && strcmp(locale, "en-GB") == 0) {
-#ifdef CONFIG_ESPURE_LOCALE_EN_GB
-        return espure_en_GB_ipa_lookup(mnemonic);
+    if (locale && strcmp(locale, "en-US") == 0) {
+#ifdef CONFIG_ESPURE_LOCALE_EN_US
+        return espure_en_US_ipa_lookup(mnemonic);
 #else
         return NULL;
 #endif
@@ -150,6 +150,23 @@ espure_err_t espure_render_phoneme_string(const espure_phoneme_table_t* table,
             if (!rendered) {
                 if (mnemonic[0] == '%' || mnemonic[0] == '_') {
                     rendered = find_ipa(table, mnemonic + 1);
+                } else if (mnemonic[0] == '#') {
+                    if (mnemonic[1] == 'X') {
+                        rendered = "";
+                    } else {
+                        rendered = find_ipa(table, mnemonic + 1);
+                    }
+                }
+                if (!rendered) {
+                    size_t mlen = strlen(mnemonic);
+                    if (mlen > 1 && mnemonic[mlen - 1] == '#') {
+                        char base_m[16];
+                        if (mlen < sizeof(base_m)) {
+                            memcpy(base_m, mnemonic, mlen - 1);
+                            base_m[mlen - 1] = '\0';
+                            rendered = find_ipa(table, base_m);
+                        }
+                    }
                 }
                 if (!rendered) {
                     output[0] = '\0';

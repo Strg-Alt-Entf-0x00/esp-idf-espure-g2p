@@ -8,7 +8,7 @@ Interactive developer console for ESPure G2P on ESP32-P4.
 - Morphological decomposition and compound splitting
 - Performance benchmarking
 - Memory and system diagnostics
-- Multi-locale support (de-DE, en-GB)
+- Multi-locale support (de-DE, en-US)
 
 ## Available Commands
 
@@ -16,7 +16,7 @@ Interactive developer console for ESPure G2P on ESP32-P4.
 - `rules <word>` (or `r <word>`) - Pure rules-only bypass (no dictionary)
 - `morph <word>` (or `m <word>`) - Morphological decomposition
 - `bench <word> [N]` (or `b <word>`) - Benchmark N phonemizations (default: 1000)
-- `locale <loc>` - Switch active locale (de-DE, en-GB)
+- `locale <loc>` - Switch active locale (de-DE, en-US)
 - `info` - Show memory, PSRAM, and dictionary statistics
 - `help` - Display command help
 

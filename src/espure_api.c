@@ -47,8 +47,8 @@ static const char* available_locales[] = {
 #ifdef CONFIG_ESPURE_LOCALE_DE_DE
     "de-DE",
 #endif
-#ifdef CONFIG_ESPURE_LOCALE_EN_GB
-    "en-GB",
+#ifdef CONFIG_ESPURE_LOCALE_EN_US
+    "en-US",
 #endif
     NULL
 };

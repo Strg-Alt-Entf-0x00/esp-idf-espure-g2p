@@ -42,7 +42,7 @@ typedef struct {
 /**
  * @brief Get normalization operations for a given BCP 47 locale.
  * 
- * @param locale Exact BCP 47 locale (e.g. "de-DE", "en-GB")
+ * @param locale Exact BCP 47 locale (e.g. "de-DE", "en-US")
  * @return Operations pointer or NULL if locale does not have custom normalization
  */
 const espure_normalize_ops_t* espure_normalize_get_ops(const char *locale);
@@ -50,7 +50,7 @@ const espure_normalize_ops_t* espure_normalize_get_ops(const char *locale);
 /**
  * @brief Normalize text for speech synthesis (Stage 1).
  * 
- * @param locale Target locale (e.g. "de-DE", "en-GB")
+ * @param locale Target locale (e.g. "de-DE", "en-US")
  * @param input Raw UTF-8 input text
  * @param output Destination buffer for normalized text
  * @param out_size Size of destination buffer

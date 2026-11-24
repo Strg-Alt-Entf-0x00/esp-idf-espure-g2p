@@ -109,7 +109,7 @@ size_t espure_phoneme_table_count(const espure_phoneme_table_t* table);
 const char* espure_phoneme_table_locale(const espure_phoneme_table_t* table);
 
 const char* espure_german_ipa_lookup(const char* mnemonic);
-const char* espure_en_GB_ipa_lookup(const char* mnemonic);
+const char* espure_en_US_ipa_lookup(const char* mnemonic);
 
 /**
  * @brief Look up phoneme by mnemonic
@@ -235,7 +235,7 @@ size_t espure_dictionary_size(const espure_dictionary_t* dict);
  * @brief Load embedded dictionary data for a locale
  * 
  * @param dict Dictionary instance
- * @param lang BCP 47 locale identifier ("de-DE", "en-GB", etc.)
+ * @param lang BCP 47 locale identifier ("de-DE", "en-US", etc.)
  * @return ESPURE_OK on success
  */
 espure_err_t espure_dictionary_load_embedded(espure_dictionary_t* dict,

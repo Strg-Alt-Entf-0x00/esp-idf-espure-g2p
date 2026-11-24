@@ -13,12 +13,12 @@ menu "espure Configuration"
                 representation, target, and build configuration. Check the
                 target build's size report rather than relying on an estimate.
 
-        config ESPURE_LOCALE_EN_GB
-            bool "British English Architecture Pilot (en-GB)"
+        config ESPURE_LOCALE_EN_US
+            bool "American English Architecture Pilot (en-US)"
             default n
             help
-                Include a small English pronunciation pilot. This is not full
-                English support and does not provide English fallback rules.
+                Include a small American English pronunciation pilot. This is not
+                full English support and does not provide English fallback rules.
 
     endmenu
 

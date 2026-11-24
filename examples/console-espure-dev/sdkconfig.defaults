@@ -65,4 +65,4 @@ CONFIG_ESP_MAIN_TASK_STACK_SIZE=12288
 # ============================================================================
 CONFIG_ESPURE_DICT_HUFFMAN_TRIE=y
 CONFIG_ESPURE_LOCALE_DE_DE=y
-CONFIG_ESPURE_LOCALE_EN_GB=y
+CONFIG_ESPURE_LOCALE_EN_US=y

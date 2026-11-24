@@ -234,19 +234,29 @@ espure_err_t espure_text_to_phonemes(const char* lang, const char* text, char* p
     while (i < text_len) {
         unsigned char c = lower[i];
         
-        // Native Glottal Stop Injection at Morpheme Boundaries
+        // Native Glottal Stop / Secondary Stress Injection at Morpheme Boundaries
         if (c == '-') {
-            if (i + 1 < text_len && is_vowel(lower[i+1])) {
-                const char* glottal = ",_!";
-                size_t gl_len = 3;
-                if (gl_len >= out_size - out_idx) {
-                    ESP_LOGE("RULES", "Output buffer too small for glottal boundary");
-                    phonemes_out[0] = '\0';
-                    return ESPURE_ERR_BUFFER_TOO_SMALL;
+            if (i + 1 < text_len) {
+                if (is_vowel(lower[i+1])) {
+                    const char* glottal = ",_!";
+                    size_t gl_len = 3;
+                    if (gl_len >= out_size - out_idx) {
+                        ESP_LOGE("RULES", "Output buffer too small for glottal boundary");
+                        phonemes_out[0] = '\0';
+                        return ESPURE_ERR_BUFFER_TOO_SMALL;
+                    }
+                    memcpy(phonemes_out + out_idx, glottal, gl_len);
+                    out_idx += gl_len;
+                    phonemes_out[out_idx] = '\0';
+                } else if (out_idx > 0 && phonemes_out[out_idx - 1] != ',' && phonemes_out[out_idx - 1] != '\'') {
+                    if (out_idx + 1 >= out_size) {
+                        ESP_LOGE("RULES", "Output buffer too small for boundary");
+                        phonemes_out[0] = '\0';
+                        return ESPURE_ERR_BUFFER_TOO_SMALL;
+                    }
+                    phonemes_out[out_idx++] = ',';
+                    phonemes_out[out_idx] = '\0';
                 }
-                memcpy(phonemes_out + out_idx, glottal, gl_len);
-                out_idx += gl_len;
-                phonemes_out[out_idx] = '\0';
             }
             i++;
             continue;
@@ -263,6 +273,9 @@ espure_err_t espure_text_to_phonemes(const char* lang, const char* text, char* p
                     const espure_rule_group_t* g2 = &DE_GROUPS2[g2_idx].group;
                     for (size_t r = 0; r < g2->count; r++) {
                         const espure_compiled_rule_t* rule = &g2->rules[r];
+                        if (strstr(rule->phonemes, "_^_") != NULL && text_len != strlen(rule->match_str)) {
+                            continue;
+                        }
                         size_t mlen = strlen(rule->match_str);
                         if (strncmp((const char*)lower + i, rule->match_str, mlen) == 0) {
                             int pts = match_rule(lower, text_len, i, rule);
@@ -288,6 +301,9 @@ espure_err_t espure_text_to_phonemes(const char* lang, const char* text, char* p
         
         for (size_t r = 0; r < group->count; r++) {
             const espure_compiled_rule_t* rule = &group->rules[r];
+            if (strstr(rule->phonemes, "_^_") != NULL && text_len != strlen(rule->match_str)) {
+                continue;
+            }
             size_t mlen = strlen(rule->match_str);
             if (strncmp((const char*)lower + i, rule->match_str, mlen) == 0) {
                 int pts = match_rule(lower, text_len, i, rule);

@@ -33,7 +33,7 @@ static int test_morphology_language_selection(void) {
         return 1;
     }
 
-    if (espure_morph_split("en-GB", word, output, sizeof(output)) ||
+    if (espure_morph_split("en-US", word, output, sizeof(output)) ||
         strcmp(output, word) != 0) {
         fprintf(stderr, "Morphology used German data for an unsupported language\n");
         return 1;

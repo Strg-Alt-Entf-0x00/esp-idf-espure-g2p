@@ -172,7 +172,7 @@ typedef struct {
 /**
  * @brief Initialize a G2P translator for a specific locale
  * 
- * @param[in]  locale Exact BCP 47 locale identifier (e.g., "de-DE" or "en-GB"); aliases are not accepted
+ * @param[in]  locale Exact BCP 47 locale identifier (e.g., "de-DE" or "en-US"); aliases are not accepted
  * @param[in]  config Configuration (NULL = default)
  * @param[out] handle Output handle
  * 
@@ -185,7 +185,7 @@ typedef struct {
  * @code
  * espure_handle_t g2p;
  * espure_config_t config = ESPURE_CONFIG_DEFAULT();
- * if (espure_init("en-GB", &config, &g2p) == ESPURE_OK) {
+ * if (espure_init("en-US", &config, &g2p) == ESPURE_OK) {
  *     // Use g2p...
  *     espure_deinit(g2p);
  * }
