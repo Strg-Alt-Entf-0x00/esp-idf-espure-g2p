@@ -1,4 +1,6 @@
-name: "espure"
+name: "esp-idf-espure-g2p"
 version: "1.0.0"
 description: "A native ESP-IDF grapheme-to-phoneme component for embedded systems"
+url: "https://github.com/Strg-Alt-Entf-0x00/esp-idf-espure-g2p"
+repository: "https://github.com/Strg-Alt-Entf-0x00/esp-idf-espure-g2p.git"
 license: "PolyForm-Noncommercial-1.0.0"
