@@ -10,7 +10,7 @@
 
 Its primary production target is **Modern Standard German (`de-DE`)**, adhering strictly to modern Duden / Wiktionary phonological standards. It also includes an isolated American English (`en-US`) architecture pilot.
 
-Designed specifically for real-time edge embedded TTS engines such as [ESPormant32](https://github.com/Strg-Alt-Entf-0x00/esp32-p4-idf-espormant32), ESPure eliminates external Python or bytecode dependencies, executing G2P translation up to **28x faster than Python/eSpeak bindings** with zero dynamic heap allocations in its hot translation path.
+Designed specifically for real-time edge embedded text-to-speech (TTS) engines, formant synthesizers, and neural acoustic vocoders, ESPure eliminates external Python or bytecode dependencies, executing G2P translation up to **28x faster than Python/eSpeak bindings** with zero dynamic heap allocations in its hot translation path.
 
 ---
 
@@ -21,11 +21,11 @@ flowchart TD
     A["Raw UTF-8 Input Text"] --> B["Text Normalization\n(Numbers, Currency, Abbreviations)"]
     B --> C{"Exact Dictionary\nException Lookup?"}
     C -- "Hit (Loanwords / Irregular)" --> D["Phoneme Sequence"]
-    C -- "Miss (Open Vocabulary)" --> E["Compound Morpheme Splitter\n(Forward-DP Prefix/Root/Fuge/Suffix)"]
+    C -- "Miss (Open Vocabulary)" --> E["Compound Morpheme Splitter\n(Forward-DP Prefix / Root / Interfix / Suffix)"]
     E --> F["Rule Matching Engine\n(Context-Sensitive L2P Rules)"]
     F --> D
     D --> G["Stress Assignment\n(Stem/Prefix Weighting, Stack-Based)"]
-    G --> H["Deterministic Phonology Engine\n(Auslautverhärtung, Vocalic Tiefschwa ɐ,\nGlottal Stop ʔ, ich/ach Distribution)"]
+    G --> H["Deterministic Phonology Engine\n(Final Devoicing, Coda-r Vocalization [ɐ],\nGlottal Stop [ʔ], Palatal/Velar Fricatives)"]
     H --> I["Unicode IPA Output"]
     H --> J["Structured Phoneme Stream\n(Tokens, Stress, Durations)"]
 ```
@@ -33,10 +33,10 @@ flowchart TD
 - **Clean-Room Static Flash ROM Phoneme Inventory:** Phoneme tables are stored directly in `.rodata` Flash ROM. Component initialization takes **0.00 ms** and requires **0 bytes of DRAM allocation**.
 - **Deterministic Stack-Based Execution:** Eliminated runtime text parsing and legacy bytecode interpreters. All per-word stress operations execute in fixed stack buffers with **zero `malloc()` calls** during translation.
 - **Native Post-Lexical Phonological Rules:** Full linguistic compliance with universal German phonotactics:
-  - **Auslautverhärtung (Final Devoicing):** Syllable-coda voiced obstruents (/b/, /d/, /ɡ/, /z/, /v/) are strictly devoiced to [p, t, k, s, f].
-  - **Vocalic Coda-r (Tiefschwa [ɐ]):** Post-vocalic /r/ and unstressed /-er/ are accurately vocalized to [ɐ] or merged diphthongs ([iːɐ̯], [uːɐ̯], [oːɐ̯], etc.).
-  - **Glottal Stop (Knacklaut [ʔ]):** Rule-governed canonical glottal stop insertion before stressed vowel-initial morphemes.
-  - **Palatal vs. Velar Fricative Allophony:** Deterministic distribution of Ich-Laut [ç] after front vowels / coronals vs. Ach-Laut [x] after back vowels / [a].
+  - **Final Devoicing (Auslautverhärtung):** Syllable-coda voiced obstruents (/b/, /d/, /ɡ/, /z/, /v/) are strictly devoiced to [p, t, k, s, f].
+  - **Coda-r Vocalization ([ɐ]):** Post-vocalic /r/ and unstressed /-er/ are vocalized to near-open central [ɐ] or merged into centering diphthongs ([iːɐ̯], [uːɐ̯], [oːɐ̯], etc.).
+  - **Glottal Stop Insertion ([ʔ]):** Canonical glottal stop insertion before stressed vowel-initial morphemes.
+  - **Palatal vs. Velar Fricative Allophony:** Deterministic distribution of palatal [ç] after front vowels and consonants vs. velar [x] after back vowels.
   - **Suffix Spirantization:** Accurate realization of standard German `-ig` -> [ɪç] (with dissimilation before suffix `-lich`).
 - **Dual Dictionary Architectures:**
   - **Front-Coded Huffman Compressed (`CONFIG_ESPURE_DICT_HUFFMAN_TRIE`):** Fits 3,874 genuine exceptions into just **56 KB Flash ROM** with zero runtime heap allocation.
@@ -75,7 +75,7 @@ Evaluated against consensus ground truth across 61,000 held-out vocabulary words
 | Benchmark Tier | Vocabulary Size | Linguistic Focus | Exact Match | Phoneme Error Rate (PER) | Word Error Rate (WER) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Tier 1 (Core)** | 1,000 words | Minimal pairs, allophones, vowel length | **45.2%** | **13.71%** | 54.80% |
-| **Tier 2 (Compounds)**| 10,000 words | Morphological compounds, Fugen elements | **29.2%** | **13.69%** | 70.80% |
+| **Tier 2 (Compounds)**| 10,000 words | Morphological compounds, linking elements | **29.2%** | **13.69%** | 70.80% |
 | **Tier 3 (Held-Out)** | 50,000 words | Open-domain standard German vocabulary | **27.0%** | **15.20%** | 72.97% |
 
 > [!NOTE]
@@ -103,7 +103,7 @@ To scientifically validate open-vocabulary robustness and phonetic fidelity, the
 A common question in speech technology is why a non-neural, rule-governed G2P engine exhibits a residual Phoneme Error Rate (~15% on raw uncurated dictionaries), and whether this error could theoretically be driven down to 0% without neural networks:
 
 1. **Wiktionary Editorial Variance & Allophonic Plurality:**
-   - Standard High German (*Bühnendeutsch / Standardhochdeutsch*) recognizes multiple phonologically equivalent allophones that sound identical to human listeners.
+   - Standard German (*Standardhochdeutsch*) recognizes multiple phonologically equivalent allophones that sound identical to human listeners.
    - For instance, eSpeak transcriptions use `[ɔʏ]` for diphthongs (*neun*, *heute*), whereas Duden/Siebs transcriptions in Wiktionary frequently use `[ɔɪ̯]`.
    - Vocalic R in post-vocalic unstressed positions (*Wasser*, *Aachener*) is transcribed by some phonetic authorities as `[ɐ]` and by others as `[ʁ]` or `[əʁ]`.
    - In raw string Levenshtein metrics, every such valid allophonic representation counts as a distance penalty, even though both are 100% correct Standard German.
@@ -184,7 +184,7 @@ idf_component_register(
 )
 ```
 
-The repository's own [`console_espure` example](examples/console_espure/)
+The repository's own [`console-espure-dev` example](examples/console-espure-dev/)
 shows the local component setup in full.
 
 #### ESP-IDF Component Manager
@@ -352,8 +352,7 @@ esp-idf-espure-g2p/
 ├── tools/                      # Native zero-dependency C host dictionary compiler (build_dict.c)
 ├── tests/host/                 # Host CTest suite (7/7 tests, MSVC / GCC / Clang)
 └── examples/
-    ├── console_espure/         # Interactive UART0 ESP32-P4 console
-    └── console-espure-dev/     # Developer UART1 console with Filebridge SD access
+    └── console-espure-dev/     # Developer UART0/1 console with benchmark commands
 ```
 
 ---

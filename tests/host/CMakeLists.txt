@@ -72,7 +72,7 @@ add_espure_test(test_normalization
 add_espure_test(test_stream
     test_stream.c structured_phoneme_stream)
 
-if(ESPURE_HOST_TEST_EN_GB)
+if(ESPURE_HOST_TEST_EN_US)
     add_espure_test(test_language_pilot
         test_language_pilot.c multilingual_architecture_pilot)
 endif()
